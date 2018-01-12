@@ -88,6 +88,7 @@ class CryptographyUnitTests {
         this.keys2 = this.cryptography.GenerateKeyPair();
         console.log(this.keys1.privateKey);
         console.log(this.keys1.publicKey);
+        console.log(this.cryptography.PublicKeyToPublicAddress(this.keys1.publicKey + "01"));
         
         this.privateKey1 = "L3EhK4zVW7xtvuw5pmJyMNdJYRXdQATt2ruznAAeFMipXMj1Gg4H";
         this.publicKey1 = "1FU6GEcUGuvBHBTNM1L9GJBJvmtcDECb1L";
