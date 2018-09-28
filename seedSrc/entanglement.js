@@ -198,6 +198,33 @@ module.exports = {
             }
         }
         return transactions;
+    },
+    /**
+     * Recursively removes a transaction, and all incoming nodes connected to it, from the entanglement.
+     * It first pinpoints the transaction to remove, and begins the recursion on all incoming nodes. These nodes
+     * will continue to the recursion, until reaching the end of the DAG when there is no incoming nodes.
+     * At this point, the newest node is removed, and the recursion exits, removing every node upward.
+     * 
+     * If requested, it will also attempt to remove it from storage.
+     * 
+     * @param {*} txHashToRemove - The hash of the transaction to remove
+     * @param {*} removeFromStorage - True or false regarding whether to remove the transaction from storage
+     */
+    removeRefutedTransaction : function(txHashToRemove, removeFromStorage) {
+        let node = entanglement.addNode(txHashToRemove);
+        for(let i = 0; i < node.incomingNodes.length; i++) {
+            this.removeRefutedTransaction(node.incomingNodes[i], removeFromStorage);
+        }
+        entanglement.remove(txHashToRemove);
+        if (removeFromStorage) {
+            let storage = storageExporter.getStorage();
+            if (storage) {
+                let dataInjector = storage.databaseInjector;
+                if (dataInjector) {
+                    dataInjector.removeTransactionAsync(txHashToRemove);
+                }
+            }
+        }
     }
  }
 
