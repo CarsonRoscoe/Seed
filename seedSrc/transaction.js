@@ -6,9 +6,9 @@
  * and re-testing transactions for validation once dependant transactions become validated.
  * 
  * Exported Functions:
- *      createNewTransaction(sender, execution, trustedTransactions ) 
+ *      createNewTransaction(sender, execution, trustedTransactions, refutedTransactions ) 
  *          - Creates a new transaction object
- *      createExistingTransaction(sender, execution, trustedTransactions, transactionHash, transactionSignature )
+ *      createExistingTransaction(sender, execution, trustedTransactions, transactionHash, transactionSignature, refutedTransactions )
  *          - Creates a new transaction object based on an existing transactions data
  *      isTransactionValid(transaction)
  *          - Determines if the transaction is considered valid or not
@@ -40,7 +40,7 @@ module.exports = {
      * 
      * @return - Returns a new transaction based on the given data
      */
-    createNewTransaction : function(sender, execution, trustedTransactions ) {
+    createNewTransaction : function(sender, execution, trustedTransactions, refutedTransactions ) {
         let cryptoHelper = cryptoExporter.newCryptoHelper();
         let svm = svmExporter.getVirtualMachine();
 
@@ -50,7 +50,7 @@ module.exports = {
             execution.functionChecksum = moduleUsed.functionChecksums[execution.functionName];
             execution.moduleChecksum = moduleUsed.moduleChecksum;
 
-            var transaction = new Transaction(sender, execution, trustedTransactions);
+            var transaction = new Transaction(sender, execution, trustedTransactions, refutedTransactions);
             transaction.updateHash();
             return transaction;
         } else {
@@ -69,8 +69,8 @@ module.exports = {
      * 
      * @return - Returns a new transaction created from existing data
      */
-    createExistingTransaction : function(sender, execution, trustedTransactions, transactionHash, transactionSignature, timestamp ) {
-        return new Transaction(sender, execution, trustedTransactions, transactionHash, transactionSignature, timestamp);  
+    createExistingTransaction : function(sender, execution, trustedTransactions, refutedTransactions, transactionHash, transactionSignature, timestamp ) {
+        return new Transaction(sender, execution, trustedTransactions, refutedTransactions, transactionHash, transactionSignature, timestamp);  
     },
     /**
      * Determines whether a transaction is considered valid or not.
@@ -191,9 +191,13 @@ module.exports = {
     //NOTE: If they didn't agree, they shouldn't have mentioned them. We only submit validated transactions we agree with. Ones we disagree with are simply ignored, never referenced, and therefore never validated
     let rule9 = validator.doesFollowRule9(transaction);
     let rule11 = validator.doesFollowRule11(transaction);
-    let result = rule1 && rule2 && rule3 && rule4 && rule5 && rules6And7 && rule8 && rule9 && rule11;
+
+    //Prove that, if the transaction refutes any transactions, they are not in our history
+    let rule12 = validator.doesFollowRule12(transaction);
+
+    let result = rule1 && rule2 && rule3 && rule4 && rule5 && rules6And7 && rule8 && rule9 && rule11 && rule12;
     if (!result) {
-        console.info("isTransactionValid Failed", rule1, rule2, rule3, rule4, rule5, rules6And7, rule8, rule9, rule11);
+        console.info("isTransactionValid Failed", rule1, rule2, rule3, rule4, rule5, rules6And7, rule8, rule9, rule11, rule12);
     }
 
     return result;
@@ -423,6 +427,25 @@ class TransactionValidator {
         }
         return true;
     }
+
+    /**
+     * Verify that, if the transaction refutes any transactions, they are not in our history
+     * 
+     * @param {*} transaction - Transaction to test
+     * 
+     * @return - True or false regarding if the check passes
+     */
+    doesFollowRule12(transaction) {
+        if (transaction.refutedTransactions && transaction.refutedTransactions.length > 0) {
+            for(let i = 0; i < transaction.refutedTransactions.length; i++) {
+                let refutedTransactionHash = transaction.refutedTransactions[i];
+                if (entanglementExporter.hasTransaction(refutedTransactionHash) || blockchainExporter.doesContainTransactions(refutedTransactionHash)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
 
 /**
@@ -452,10 +475,14 @@ class Transaction {
      * @param {*} sender - Creator of the transaction
      * @param {*} execution - The changes that were done by the transaction
      * @param {*} trustedTransactions - Validation info regarding what this transaction deemed valid as work
+     * @param {*} refutedTransactions - Array of refuted transactions
      * @param {*} transactionHash - The hash of this transaction information
      * @param {*} signature - A cryptographic signature between the sender and the transactionHash
      */
-    constructor(sender, execution, trustedTransactions, transactionHash, signature, timestamp) {
+    constructor(sender, execution, trustedTransactions, refutedTransactions, transactionHash, signature, timestamp) {
+        if (refutedTransactions && refutedTransactions.length == 0) {
+            refutedTransactions = undefined;
+        }
         this.transactionHash = transactionHash;
         this.sender = sender;
         this.execution = {
@@ -467,6 +494,9 @@ class Transaction {
             changeSet : execution.changeSet
         };
         this.validatedTransactions = trustedTransactions;
+        if (refutedTransactions) {
+            this.refutedTransactions = refutedTransactions;
+        }
         this.signature = signature;
         if (!timestamp) {
             timestamp = new Date().getTime();
@@ -499,6 +529,11 @@ class Transaction {
             hashable += this.validatedTransactions[i].moduleChecksum;
             hashable += this.validatedTransactions[i].transactionChecksum;
             hashable += this.validatedTransactions[i].changeSet;
+        }
+        if (this.refutedTransactions && this.refutedTransactions.length > 0) {
+            for(let i = 0; i < this.refutedTransactions.length; i++) {
+                hashable += this.refutedTransactions[i];
+            }
         }
         return hashable;
     }
