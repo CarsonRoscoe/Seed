@@ -215,7 +215,6 @@ class VirtualMachine {
             this.incomingTransaction(transaction);
             return transaction;
         } else {
-            //console.info("FAILED", localSimulation);
             return null;
         }
     }
@@ -352,6 +351,23 @@ class VirtualMachine {
     fullHashFunction(info) {
         let module = this.getModule(info);
         return module.fullHashFunction(info);
+    }
+
+    /**
+     * Clears the local data stored in the entanglement, blockchain the ledger.
+     * Afterwards, it reinitliazes the state of the ledger, entanglement and blockchain
+     * based on any available storage
+     */
+    reinitializeStateFromStorage() {
+        let storage = storageExporter.getStorage();
+        if (storage) {
+            entanglement.clearAll();
+            blockchain.clearAll();
+            ledgerExporter.clearAll();
+            storage.loadInitialState();
+        } else {
+            throw new Error("Cannot reinitialize state from storage as no storage object has been constructed");
+        }
     }
 }
 

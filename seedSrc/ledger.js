@@ -31,6 +31,12 @@ module.exports = {
      */
     getUnitTests : function() {
         return ledgerUnitTests;
+    },
+    /**
+     * Clears all data from the ledger
+     */
+    clearAll : function() {
+        ledger = new Ledger();
     }
  }
 
