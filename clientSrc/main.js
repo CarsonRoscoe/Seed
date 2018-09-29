@@ -225,6 +225,12 @@ ipcMain.once("runUnitTests", () => {
     for(let i = 0; i < transactions.length; i++) {
         seed.getSVMExporter().getVirtualMachine().wasTransactionValid(transactions[i].transactionHash);
     }
+
+    let changeSet = JSON.parse(transactions[5].execution.changeSet);
+    changeSet.moduleData.totalSupply = 10;
+    transactions[5].execution.changeSet = changeSet;
+    seed.getSVMExporter().getVirtualMachine().wasTransactionValid(transactions[5].transactionHash);
+    
 });
 
 /**

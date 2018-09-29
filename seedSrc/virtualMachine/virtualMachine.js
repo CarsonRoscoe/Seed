@@ -268,7 +268,7 @@ class VirtualMachine {
                 for(let j = 0; j < oldTx.validatedTransactions.length; j++) {
                     txHashes.push(oldTx.validatedTransactions[j].transactionHash);
                 }
-                let container = containerExporter.createContainer(moduleToInvoke.module,  oldTx.sender, oldTx.execution.args, txHashes);
+                let container = containerExporter.createContainer(moduleToInvoke.module,  oldTx.sender, oldTx.execution.args, txHashes, vLedger);
                 let result = undefined;
 
                 let changeContext = changeContextExporter.createChangeContext(oldTx.sender);

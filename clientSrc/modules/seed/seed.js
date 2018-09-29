@@ -191,7 +191,7 @@ let approve = function(container, changeContext) {
     let value = container.args.value;
     let currentApproval = container.getSenderData().allowance[spender];
 
-    let dif = value - (currentApproval != undefined ? currentApproval : 0); 
+    let dif = value - (currentApproval != undefined ? currentApproval : 0);
 
     if (dif > 0) {
         changeContext.add(dif, { user : container.sender, outerKey : "allowance", innerKey : spender });

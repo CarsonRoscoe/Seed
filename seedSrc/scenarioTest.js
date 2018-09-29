@@ -75,7 +75,7 @@ module.exports = {
         tester.assertEqual("getBalanceOf", { owner : tester.getAccount("DEF") }, 75, "DEF should have 75 after burning 25, removing it from circulation");
         tester.assertEqual("getTotalSupply", {}, 975, "25 coins were burned, removed from circulation, since initial 1000 creation");
 
-        squasherExporter.transactionsToBlock(Object.values(entanglementExporter.getEntanglement().transactions));
+        //squasherExporter.transactionsToBlock(Object.values(entanglementExporter.getEntanglement().transactions));
 
         tester.endTest();
     },

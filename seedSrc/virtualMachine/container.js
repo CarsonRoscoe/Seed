@@ -21,11 +21,16 @@ module.exports = {
      * @arg {object} moduleName - The module name for which this belongs container primarily is created for
      * @arg {string} sender - The address of the sender of the function being ran/simulated
      * @arg {object} args - The arguments to be passed for the function being executed
+     * @arg {object} txHashes - The transaction hashes 
+     * @arg {object} optionalLedger - An optional argument regarding which ledger to read any state data from
      * 
      * @return {object} - A new Container object
      */
-    createContainer: function(moduleName, sender, args, txHashes) {
-       return new Container(moduleName, sender, args, txHashes);
+    createContainer: function(moduleName, sender, args, txHashes, optionalLedger) {
+        if (!optionalLedger) {
+            optionalLedger = ledgerExporter.getLedger();
+        }
+        return new Container(moduleName, sender, args, txHashes, optionalLedger);
     }
  }
 
@@ -35,12 +40,13 @@ module.exports = {
  const conformHelper = require("../helpers/conformHelper.js");
 
 class Container {
-    constructor(moduleName, sender, args, txHashes) {
+    constructor(moduleName, sender, args, txHashes, ledger) {
         this.moduleName = moduleName;
         this.args = args;
         this.sender = sender;
         this.cachedDatas = {};
         this.txHashes = txHashes;
+        this.ledger = ledger;
     }
 
     /*  
@@ -216,7 +222,7 @@ class Container {
      */
     ensureDataLoaded(moduleName) {
         if (this.cachedDatas[moduleName] == undefined) {
-            this.cachedDatas[moduleName] = ledgerExporter.getLedger().getCopyOfModuleData(moduleName);
+            this.cachedDatas[moduleName] = this.ledger.getCopyOfModuleData(moduleName);
         }
     }
 }
