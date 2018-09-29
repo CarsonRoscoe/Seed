@@ -25,6 +25,12 @@ module.exports = {
         return ledger;
     },
     /**
+     * Returns a new, uncached, Ledger instance
+     */
+    newLedger : function() {
+        return new Ledger();
+    },
+    /**
      * Returns the mapping of unit tests for testing
      * 
      * @return - The mapping of unit tests

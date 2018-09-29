@@ -4,7 +4,7 @@
   "description": "An Electorn interface for the seed protocol.",
   "main": "main.js",
   "scripts": {
-    "start": "Electron .",
+    "start": "Electron . --storage",
     "start:osx": "Electron .",
     "start:linux": "./node_modules/electron/dist/electron .",
     "client:osx": "Electron . --client",

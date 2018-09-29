@@ -49,6 +49,7 @@ const transactionExporter = require("../transaction.js");
 const messagingExporter = require("../messaging.js");
 const moduleExporter = require("../module.js");
 const unitTestingExporter = require("../tests/unitTesting.js");
+const storageExporter = require("../storage/storage.js");
 
 class VirtualMachine {
     
@@ -219,6 +220,80 @@ class VirtualMachine {
         }
     }
 
+    wasTransactionValid(transactionHash) {
+        storageExporter.setActive(false);
+
+        let vLedger = ledgerExporter.newLedger();
+        let cachedModules = moduleExporter.getCachedModules();
+        for(let i = 0; i < cachedModules.length; i++) {
+            let cachedModule = cachedModules[i];
+            vLedger.addModuleData(cachedModule.module, cachedModule.initialData, cachedModule.initialUserData);
+        }
+
+        let existingTransactions = entanglement.getEntanglement().transactions;
+        let existingBlocks = blockchain.getBlockchains();
+
+        let sortByTimestamp = function(a, b){
+            return a.timestamp - b.timestamp
+        };
+        
+        let blockGenerations = Object.keys(existingBlocks);
+        for(let i = 0; i < blockGenerations.length; i++) {
+            let blocks = existingBlocks[blockGenerations[i]];
+            blocks.sort(sortByTimestamp);
+            for(let j = 0; j < blocks.length; j++) {
+                let block = blocks[i];
+                vLedger.applyBlock(block);
+            }
+        }
+        
+        let transactions = [];
+        let existingTransactionHashes = Object.keys(existingTransactions);
+        for(let i = 0; i < existingTransactionHashes.length; i++) {
+            transactions.push(existingTransactions[existingTransactionHashes[i]]);
+        }
+        transactions.sort(sortByTimestamp);
+        
+        for(let i = 0; i < transactions.length; i++) {
+            let oldTx = transactions[i];
+            if (oldTx.transactionHash == transactionHash) {
+                let moduleToInvoke = this.getModule({ module : oldTx.execution.moduleName });
+                let moduleDataToInvoke = vLedger.getModuleData(oldTx.execution.moduleName);
+                //If the user simulating this does not exist, add them to our ledger
+                vLedger.addUserData(oldTx.execution.moduleName, oldTx.sender);
+
+                let moduleFunction = moduleToInvoke.getFunctionByName(oldTx.execution.functionName);
+                let moduleFunctionArgs = conformHelper.getFunctionArgs(moduleFunction.invoke);
+                let txHashes = [];
+                for(let j = 0; j < oldTx.validatedTransactions.length; j++) {
+                    txHashes.push(oldTx.validatedTransactions[j].transactionHash);
+                }
+                let container = containerExporter.createContainer(moduleToInvoke.module,  oldTx.sender, oldTx.execution.args, txHashes);
+                let result = undefined;
+
+                let changeContext = changeContextExporter.createChangeContext(oldTx.sender);
+                try {
+                    result = moduleFunction.invoke(container, changeContext); //Container is ledger, changeContext keeps track of changes
+                } catch (err) {
+                    console.info("VirtualMachine::ERROR:: Failed to run state-modifying function when resimulating history", err);
+                }
+
+                if (result && JSON.stringify(result) == oldTx.execution.changeSet) {
+                    console.info("SIMULATION PASSED!!!!")
+                } else {
+                    console.info("Simulation failed: ", JSON.stringify(result), "OR", oldTx.execution.changeSet, "FROM", JSON.stringify(vLedger));
+                }
+
+                break; // Break out cause we done here. Don't keep going
+            } else {
+                vLedger.applyChanges(oldTx.execution.moduleName, JSON.parse(oldTx.execution.changeSet) );
+            }
+        }
+
+        storageExporter.setActive(true);
+        return false;
+    }
+
     /**
      * Receives an incoming transaction and, if it is Proper and well formed, it tries to add it to the entanglement
      * 
@@ -226,8 +301,24 @@ class VirtualMachine {
      */
     incomingTransaction(transaction) {
         if (!entanglement.hasTransaction(transaction.transactionHash)) {
+            // Check, if there's any refuting transactions, that they do not exist.
+            if (transaction.refutedTransactions && transaction.refutedTransactions.length > 0) {
+                for(let i = 0; i < transaction.refutedTransactions.length; i++) {
+                    let refutedTxHash = transaction.refutedTransactions[i];
+                    if (entanglement.hasTransaction(transaction.refutedTransactions[i])) {
+                        // Simulate it and make sure it is valid
+                        let wasRefutedInvalid = !this.wasTransactionValid(refutedTxHash); 
+                        if (wasRefutedInvalid) {
+                            entanglement.removeRefutedTransaction(refutedTxHash);
+                        } else {
+                            throw new Error("Refuted transaction was deemed valid when resimulated.");
+                        }
+                    }
+                }
+            }
+
             // If its a proper, formed transaction
-            if (transactionExporter.isTransactionProper(transaction)) {
+            if (transactionExporter.isTransactionProper(transaction).passed) {
                 // We add it to the entanglement
                 entanglement.tryAddTransaction(transaction);
                 return true;
@@ -427,7 +518,7 @@ const virtualMachineUnitTests = {
         entanglement.clearAll();
         blockchain.clearAll();
         let seedConstructorData = unitTestingExporter.getSeedConstructorTransaction();
-        let seedConstructorTx = transactionExporter.createExistingTransaction(seedConstructorData.sender, seedConstructorData.execution, seedConstructorData.validatedTransactions, seedConstructorData.transactionHash, seedConstructorData.signature, seedConstructorData.timestamp );
+        let seedConstructorTx = transactionExporter.createExistingTransaction(seedConstructorData.sender, seedConstructorData.execution, seedConstructorData.validatedTransactions, seedConstructorData.refutedTransactions, seedConstructorData.transactionHash, seedConstructorData.signature, seedConstructorData.timestamp );
         let svm = module.exports.getVirtualMachine();
         svm.incomingTransaction(seedConstructorTx, false);
         let txHash = seedConstructorTx.transactionHash;

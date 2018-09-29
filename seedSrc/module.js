@@ -27,15 +27,25 @@ module.exports = {
      * @return - Returns a new module object
      */
     createModule : function(info) {
-        return new Module(info);
+        let newModule = new Module(info);
+        cachedModules.push(newModule);
+        return newModule;
     },
     /**
      * Creates a simple module used for unit testing by the virtual machine.
      */
     getTestModule : function() {
         return testModule;
+    },
+    /**
+     * Returns all cached modules that were previously created
+     */
+    getCachedModules : function() {
+        return cachedModules;
     }
  }
+
+ let cachedModules = [];
 
  class Module {
     constructor(info) {
@@ -105,7 +115,6 @@ module.exports = {
      * @return - Returns true of false for whether the user already exists in this modules data
      */
     doesUserExist(user) {
-        
         return ledgerExporter.getLedger().getModuleData(this.module).userData[user] != undefined;
     }
 

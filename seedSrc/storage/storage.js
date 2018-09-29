@@ -24,6 +24,7 @@ module.exports = {
     newStorage : function(iDatabaseInjector, useCompression) {
         if (iDatabaseInjector) {
             storage = new Storage(iDatabaseInjector, useCompression);
+            enabled = true;
         }
         return storage;
     },
@@ -79,6 +80,12 @@ module.exports = {
      */
     loadInitialState : function(blocks, transactions) {
         loadInitialState(blocks, transactions);
+    },
+    /**
+     * Toggles on or off the use of the storage subsystem
+     */
+    setActive : function(shouldBeActive) {
+        enabled = shouldBeActive;
     }
 }
 
@@ -92,6 +99,8 @@ const unitTestingExporter = require("../tests/unitTesting.js");
 const fileSystemInjector = require("./fileSystemInjector.js");
 const localStorageInjector = require("./localStorageInjector.js");
 
+enabled = true;
+
 /**
  * Invokes the storage's loadInitialState function, which tries to load all transactions/blocks from storage
  * 
@@ -99,24 +108,26 @@ const localStorageInjector = require("./localStorageInjector.js");
  * @param transactions - An array of instantiated transactions to load
  */
 let loadInitialState = function(blocks, transactions) {
-    let sortByTimestamp = function(a, b){
-        return a.timestamp - b.timestamp
-    };
-    
-    blocks.sort(sortByTimestamp);
-    for(let i = 0; i < blocks.length; i++) {
-        if (blockExporter.isValid(blocks[i])) {
-            blockchainExporter.addTestamentBlock(blocks[i], false);
-            ledgerExporter.getLedger().applyBlock(blocks[i]);
-        } else {
-            throw "FAILED TO CHECK VALIDITY OF BLOCK";
+    if (enabled) {
+        let sortByTimestamp = function(a, b){
+            return a.timestamp - b.timestamp
+        };
+        
+        blocks.sort(sortByTimestamp);
+        for(let i = 0; i < blocks.length; i++) {
+            if (blockExporter.isValid(blocks[i])) {
+                blockchainExporter.addTestamentBlock(blocks[i], false);
+                ledgerExporter.getLedger().applyBlock(blocks[i]);
+            } else {
+                throw "FAILED TO CHECK VALIDITY OF BLOCK";
+            }
         }
-    }
-    transactions.sort(sortByTimestamp);
-    for(let i = 0; i < transactions.length; i++) {
-        let txData = transactions[i];
-        let transaction = transactionExporter.createExistingTransaction(txData.sender, txData.execution, txData.validatedTransactions, txData.transactionHash, txData.signature, txData.timestamp);
-        svmExporter.getVirtualMachine().incomingTransaction(transaction, false);
+        transactions.sort(sortByTimestamp);
+        for(let i = 0; i < transactions.length; i++) {
+            let txData = transactions[i];
+            let transaction = transactionExporter.createExistingTransaction(txData.sender, txData.execution, txData.validatedTransactions, txData.refutedTransactions, txData.transactionHash, txData.signature, txData.timestamp);
+            svmExporter.getVirtualMachine().incomingTransaction(transaction, false);
+        }
     }
 }
 
@@ -136,17 +147,19 @@ class Storage {
     }
 
     readInitialState() {
-        let blocksJSON = this.databaseInjector.readBlockchainsSync();
-        let blocks = [];
-        for(let i = 0; i < blocksJSON.length; i++) {
-            blocks.push(this.tryDecompress(blocksJSON[i]));
+        if (enabled) {
+            let blocksJSON = this.databaseInjector.readBlockchainsSync();
+            let blocks = [];
+            for(let i = 0; i < blocksJSON.length; i++) {
+                blocks.push(this.tryDecompress(blocksJSON[i]));
+            }
+            let transactionsJSON = this.databaseInjector.readEntanglementSync();
+            let transactions = [];
+            for(let i = 0; i < transactionsJSON.length; i++) {
+                transactions.push(this.tryDecompress(transactionsJSON[i]));
+            }
+            return { blocks : blocks, transactions : transactions };
         }
-        let transactionsJSON = this.databaseInjector.readEntanglementSync();
-        let transactions = [];
-        for(let i = 0; i < transactionsJSON.length; i++) {
-            transactions.push(this.tryDecompress(transactionsJSON[i]));
-        }
-        return { blocks : blocks, transactions : transactions };
     }
 
     /**
@@ -156,7 +169,9 @@ class Storage {
      * @param transactions - An array of instantiated transactions to load
      */
     loadInitialState(blocks, transactions) {
-        loadInitialState(blocks, transactions);
+        if (enabled) {
+            loadInitialState(blocks, transactions);
+        }
     }
 
     /**
@@ -167,15 +182,17 @@ class Storage {
      * @param replacedBlocks - An array of blocks that need to be deleted
      */
     saveBlock(newBlock, replacedBlocks) {
-        this.databaseInjector.writeBlockSync(newBlock.blockHash, this.tryCompress(newBlock), newBlock.generation);
-        let transactions = JSON.parse(newBlock.transactions);
-        let transactionHashes = Object.keys(transactions);
-        for(let i = 0; i < transactionHashes.length; i++) {
-            this.databaseInjector.removeTransactionAsync(transactionHashes[i]);
-        }
-        if (replacedBlocks) {
-            for(let i = 0; i < replacedBlocks.length; i++) {
-                this.databaseInjector.removeBlockAsync(replacedBlocks[i].generation, replacedBlocks[i].blockHash);
+        if (enabled) {
+            this.databaseInjector.writeBlockSync(newBlock.blockHash, this.tryCompress(newBlock), newBlock.generation);
+            let transactions = JSON.parse(newBlock.transactions);
+            let transactionHashes = Object.keys(transactions);
+            for(let i = 0; i < transactionHashes.length; i++) {
+                this.databaseInjector.removeTransactionAsync(transactionHashes[i]);
+            }
+            if (replacedBlocks) {
+                for(let i = 0; i < replacedBlocks.length; i++) {
+                    this.databaseInjector.removeBlockAsync(replacedBlocks[i].generation, replacedBlocks[i].blockHash);
+                }
             }
         }
     }
@@ -186,7 +203,9 @@ class Storage {
      * @param newTransaction - The transaction to store in storage
      */
     saveTransaction(newTransaction) {
-        this.databaseInjector.writeTransactionSync(newTransaction.transactionHash, this.tryCompress(newTransaction));
+        if (enabled) {
+            this.databaseInjector.writeTransactionSync(newTransaction.transactionHash, this.tryCompress(newTransaction));
+        }
     }
 
     /**

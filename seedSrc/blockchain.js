@@ -29,7 +29,10 @@ module.exports = {
             let replacedBlocks = trySquash(block, saveToStorage);
             
             if (saveToStorage) {
-                storageExporter.getStorage().saveBlock(block, replacedBlocks);
+                let storage = storageExporter.getStorage();
+                if (storage) {
+                    storage.saveBlock(block, replacedBlocks);
+                }
             }
             //debugBlockchain();
             return true;

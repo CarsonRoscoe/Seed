@@ -35,6 +35,12 @@ module.exports = {
         return entanglement;
     },
     /**
+     * Returns a new, unchached, entanglement.
+     */
+    newEntanglement : function() {
+        return new Entanglement();
+    },
+    /**
      * Adds the incoming transaction to the entanglement
      * 
      * @param transaction - The transaction to add
@@ -62,7 +68,10 @@ module.exports = {
             if (storage) {
                 storage.saveTransaction(transaction);
             }
+
+            return true;
         }
+        return false;
     },
     /**
      * Checks if adding this transaction would cause a cycle to occur, as DAG's are acyclic by nature
@@ -411,7 +420,8 @@ const VALIDATION_LEVEL = {
      * @param {*} transaction  - The transaction to add to the entanglement
      */
     addTransaction(transaction) {
-        if (transactionExporter.isTransactionProper(transaction)) {
+        let result = transactionExporter.isTransactionProper(transaction);
+        if (result.passed) {
             this.transactions[transaction.transactionHash] = transaction;
             let result = this.addNode(transaction.transactionHash);
             let transactionsToTrust = transaction.validatedTransactions;
@@ -526,7 +536,7 @@ const VALIDATION_LEVEL = {
      */
     entanglement_addsValidTransactionsToEntanglement : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         module.exports.tryAddTransaction(newTransaction, false);
         test.assert(entanglement.contains(newTransaction.transactionHash), "Entanglement should have stored the valid transaction");
     },
@@ -535,7 +545,7 @@ const VALIDATION_LEVEL = {
      */
     entanglement_doesNotAddInvalidTransactions : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let invalidTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let invalidTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         test.assertFail(() => {
             module.exports.tryAddTransaction(invalidTransaction, false);
         }, "Entanglement should have thrown an error on this transaction for referring to transactions which don't exist"); 

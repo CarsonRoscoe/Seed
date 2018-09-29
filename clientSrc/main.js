@@ -210,6 +210,21 @@ ipcMain.on("executeJavaScript", function(event, windowName, javaScriptString, ca
  */
 ipcMain.once("runUnitTests", () => {
     seed.getScenarioTestExporter().seedScenarioSetupTest();
+    let existingTransactions = seed.getEntanglementExporter().getEntanglement().transactions;
+    let sortByTimestamp = function(a, b){
+        return a.timestamp - b.timestamp
+    };
+    
+    let transactions = [];
+    let existingTransactionHashes = Object.keys(existingTransactions);
+    for(let i = 0; i < existingTransactionHashes.length; i++) {
+        transactions.push(existingTransactions[existingTransactionHashes[i]]);
+    }
+    transactions.sort(sortByTimestamp);
+
+    for(let i = 0; i < transactions.length; i++) {
+        seed.getSVMExporter().getVirtualMachine().wasTransactionValid(transactions[i].transactionHash);
+    }
 });
 
 /**

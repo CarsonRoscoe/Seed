@@ -200,7 +200,19 @@ module.exports = {
         console.info("isTransactionValid Failed", rule1, rule2, rule3, rule4, rule5, rules6And7, rule8, rule9, rule11, rule12);
     }
 
-    return result;
+    return {
+        rule1: rule1,
+        rule2: rule2,
+        rule3: rule3,
+        rule4: rule4,
+        rule5: rule5,
+        rules6And7: rules6And7,
+        rule8: rule8,
+        rule9: rule9,
+        rule11: rule11,
+        rule12: rule12,
+        passed : result
+    };
  }
 
  /**
@@ -213,8 +225,12 @@ module.exports = {
   * @return - True or false regarding whether the transaction is Valid or not
   */
  let isValid = function(transaction, validator) {
-    let rule10 = validator.doesFollowRule10(transaction);
-    return isProper(transaction, validator) && rule10;
+    let properCheck = isProper(transaction, validator);
+    properCheck.rule10 = validator.doesFollowRule10(transaction);
+    if (properCheck.passed && !properCheck.rule10) {
+        properCheck.passed = false;
+    }
+    return properCheck;
 }
 
 // Proper transactions waiting to be rechecked for pending validity
@@ -558,7 +574,7 @@ const transactionUnitTests = {
      */
     transactionCreation_createsAValidTransactionWithValidHash : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         test.assertAreEqual(testTransaction.sender, newTransaction.sender, "Created transactions should match test transaction's sender");
         test.assertAreEqual(JSON.stringify(testTransaction.execution), JSON.stringify(newTransaction.execution), "Created transactions should match test transaction's execution");
         test.assertAreEqual(testTransaction.validatedTransactions, newTransaction.validatedTransactions, "Created transactions should match test transaction's validated transactions");
@@ -571,16 +587,16 @@ const transactionUnitTests = {
      */
     transactionValidation_createAndValidateATransaction : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp );
-        test.assert(module.exports.isTransactionProper(newTransaction), "Newly created transaction should be proper");
-        test.assert(module.exports.isTransactionValid(newTransaction), "Newly created transaction should be valid");
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp );
+        test.assert(module.exports.isTransactionProper(newTransaction).passed, "Newly created transaction should be proper");
+        test.assert(module.exports.isTransactionValid(newTransaction).passed, "Newly created transaction should be valid");
     },
     /**
      * Validates that the transaction validation system is correct in failing transactions which don’t meet transaction validation rule #1.
      */
     transactionValidation_failsTransactionsBreakingValidationRule1 : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         // Modify the data to make a different hash, breaking rule 1
         newTransaction.execution.changeSet += " "; // Break it by adding a space to the data
         test.assertAreEqual(new TransactionValidator().doesFollowRule1(newTransaction), false, "The new transaction should fail check rule#1 as it was tampered with so its hash does not match.");
@@ -590,7 +606,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule2 : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         // The send's public key must be valid for rule #2, so tamper with it
         newTransaction.sender += 'G3F'; // Break it by extending it so its too long
         test.assertAreEqual(new TransactionValidator().doesFollowRule2(newTransaction), false, "The new transaction should fail check rule#2 as it was tampered with so its public key is not valid.");
@@ -601,7 +617,7 @@ const transactionUnitTests = {
     transactionValidation_failsTransactionsBreakingValidationRule3 : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
         let otherTestTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         // The send's public key must be valid for rule #2, so tamper with it
         newTransaction.sender = otherTestTransaction.sender; // Break it by swapping the sender with another transactions sender
         test.assert(new TransactionValidator().doesFollowRule2(newTransaction), "Despite changing the Sender, the public key should still be valid");
@@ -612,7 +628,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule4 : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         test.assertAreEqual(new TransactionValidator().doesFollowRule4(newTransaction), false, "The created transaction should fail to have its parents validated, as they do not exist in the active entanglement");
     },
     /**
@@ -620,7 +636,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule5 : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp );
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp );
         entanglementExporter.tryAddTransaction(newTransaction, false);
         test.assertFail( () => {
             new TransactionValidator().doesFollowRule5(newTransaction)
@@ -632,7 +648,7 @@ const transactionUnitTests = {
     transactionValidation_failsTransactionsBreakingValidationRule6 : function(test, log) {
         // These tests are done together in code
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         newTransaction.execution.moduleChecksum += "G";
         test.assertAreEqual(new TransactionValidator().doesFollowRules6And7(newTransaction), false, "Should not be able to match the checksums with any genuine loaded values.");
     },
@@ -642,7 +658,7 @@ const transactionUnitTests = {
     transactionValidation_failsTransactionsBreakingValidationRule7 : function(test, log) {
         // These tests are done together in code
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         newTransaction.execution.functionChecksum += "3";
         test.assertAreEqual(new TransactionValidator().doesFollowRules6And7(newTransaction), false, "Should not be able to match the checksums with any genuine loaded values.");
     },
@@ -651,7 +667,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule8 : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         let changeSetObj = JSON.parse(newTransaction.execution.changeSet);
         changeSetObj.moduleData.totalSupply += 1000; // Lie and say we started with 1000 extra SEED
         newTransaction.execution.changeSet = JSON.stringify(changeSetObj);
@@ -662,7 +678,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule9 : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
 
         test.assertAreEqual(new TransactionValidator().doesFollowRule9(newTransaction), false, "ERRs");
     },
@@ -671,7 +687,7 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule10 : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
 
         test.assertAreEqual(new TransactionValidator().doesFollowRule10(newTransaction), false, "ERRs");
     },
@@ -680,14 +696,14 @@ const transactionUnitTests = {
      */
     transactionValidation_failsTransactionsBreakingValidationRule11 : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = module.exports.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         // Modify the valid transaction so the transactions it validates claim to have the same sender as this
         test.assertFail(() => {
             new TransactionValidator().doesFollowRule11(newTransaction);
         }, "Should fail as the expected transactions do not exist in the blockchain.");
 
         let sameOwnerTransactionData = unitTestingExporter.getTestTransactions()[2];
-        let sameOwnerTransaction = module.exports.createExistingTransaction(sameOwnerTransactionData.sender, sameOwnerTransactionData.execution, sameOwnerTransactionData.validatedTransactions, sameOwnerTransactionData.transactionHash, sameOwnerTransactionData.signature, sameOwnerTransactionData.timestamp )
+        let sameOwnerTransaction = module.exports.createExistingTransaction(sameOwnerTransactionData.sender, sameOwnerTransactionData.execution, sameOwnerTransactionData.validatedTransactions, undefined, sameOwnerTransactionData.transactionHash, sameOwnerTransactionData.signature, sameOwnerTransactionData.timestamp )
         let seedConstructor = unitTestingExporter.getSeedConstructorTransaction();
         // Manually add Seed Constructor to entanglement
         let entanglement = entanglementExporter.getEntanglement();
