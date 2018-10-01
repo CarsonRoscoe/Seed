@@ -136,9 +136,6 @@ module.exports = {
                 result.push(transaction);
             }
         }
-        if (result.length < numberOfTips) {
-            console.info("ERROR: Only found TIPS::", result, " when requesting ", numberOfTips, " tips");
-        }
         return result;
     },
     /**
@@ -332,9 +329,6 @@ let getAllValidatedParents = function(transaction, entanglement) {
                     let validatedParents = getAllValidatedParents(validatedTransaction, entanglement);
                     validated = validatedParents;
                 }
-            } else {
-                // Parent was removed from a previous block creation already
-                console.info("Parent was removed from previous block creation");
             }
         }
     } else {

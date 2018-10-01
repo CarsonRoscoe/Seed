@@ -131,6 +131,7 @@ module.exports = {
                 let mdcKey = moduleName + mdKeys[i]; // SeedtotalSupply = "Seed" + "totalSupply"
                 //If we have subscriptions for mdcKey, go through them and invoke
                 if (moduleDataCallbacks[mdcKey] != undefined) {
+                    console.info(moduleDataCallbacks);
                     let moduleDataKeys = Object.keys(moduleDataCallbacks[mdcKey]);
                     for(let j = 0; j < moduleDataKeys.length; j++) {
                         moduleDataCallbacks[mdcKey][moduleDataKeys[j]](message);
@@ -166,6 +167,14 @@ module.exports = {
      */
     getUnitTests : function() {
         return messagingUnitTests;
+    },
+    /**
+     * Clears all subscriptions
+     */
+    clearAll : function() {
+        functionCallbacks = {};
+        moduleDataCallbacks = {};
+        userDataCallbacks = {};
     }
 }
 

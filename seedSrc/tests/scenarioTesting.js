@@ -13,10 +13,9 @@
  *    3) The Seed module can be created, with many transfers between users, ending with proper balances
  *    4) The Seed module can be created, approving balances, and sending on others behalfs
  *    5) The Seed module can be created, with users burning currency, and the total supply being affected
- *    6) The Seed module can be created, with callbacks hooked-up, which change values. The end values should match expected ones.
- *    7) The Seed module can be created, with a complex system of transfers/approvals/burning occurs, and callbacks working as intended
- *    8) The Seed module can be created, with a user forging a malcious transaction, which fails to be added
- *    9) The Seed module can be created, with a user forging history, but a transaction refutes it. After rechecking, forger is removed, and refuter is accepted
+ *    6) The Seed module can be created, with a complex system of transfers/approvals/burning occurs, and callbacks working as intended
+ *    7) The Seed module can be created, with a user forging a malcious transaction, which fails to be added
+ *    8) The Seed module can be created, with a user forging history, but a transaction refutes it. After rechecking, forger is removed, and refuter is accepted
  */
 
 const virtualMachineExporter = require("../virtualMachine/virtualMachine.js");
@@ -43,13 +42,14 @@ module.exports = {
             entanglementExporter.clearAll();
             blockchainExporter.clearAll();
             ledgerExporter.clearAll();
+            messagingExporter.clearAll();
             let result = scenarioTest(log);
             result.endTest();
         }
         entanglementExporter.clearAll();
         blockchainExporter.clearAll();
         ledgerExporter.clearAll();
-
+        messagingExporter.clearAll();
     }
  }
 
@@ -58,114 +58,80 @@ module.exports = {
       * 1) A custom module can be created inline, invoked by a user, and have the proper effects occur
       */
      InlineModule_SuccessfullyCreated : function(log) {
+         let vm = virtualMachineExporter.getVirtualMachine();
          let tester = moduleTester.beginTest("Inline", "User1");
-         // Get VM
-         // Create Module with a "MoveLeft", "getX"
-         // Invoke Constructor with wall's x/y placement at (-3, 0)
-         // Assert Wall is at (-3,0)
-         // Assert User is at (0,0)
-         // Invoke MoveLeft
-         // Assert User is at (-1,0)
-         // Invoke MoveLeft
-         // Assert User is at (-2,0)
-         // Invoke MoveLeft
-         // Assert User is still at (-2,0)
-         // Assert Wall is still at (-3,0)
-         tester.assertExpression(false, "NOT IMPLEMENTED");
+
+         vm.addModule(relayExporter.getModule());
+
+         log("Creating a inline module which has a wall users cannot walk into. Users can walk left until they hit a wall.");
+         vm.addModule(moduleExporter.createModule({
+            module : "Inline", 
+            initialData : { walls : { "-3" : { 0 : true } } }, // Only wall is at (-3,0)
+            initialUserData : { x : 0, y : 0 }, // Users start at (0,0)
+            functions : {
+                moveLeft : function(container, changeContext) {
+                    let gameData = container.getModuleData();
+                    let userData = container.getSenderData();
+                    let walls = gameData["walls"];
+                    // If there is a wall to our users left, we cannot move left
+                    if (walls[userData.x - 1] && walls[userData.x - 1][userData.y]) {
+                        return changeContext;
+                    }
+                    // Subtract 1 from the user's X to move left
+                    changeContext.subtract(1, { user : container.sender, key : "x" });
+                    return changeContext;
+                },
+                getX : function(container) {
+                    return container.getSenderData().x;
+                },
+                getY : function(container) {
+                    return container.getSenderData().y;
+                },
+                hasWall : function(container) {
+                    let walls = container.getModuleData()["walls"];
+                    return (walls[container.args.x] && walls[container.args.x][container.args.y]); 
+                }
+            }
+        }));
+
+
+        log("Starting a user at (0,0) with a wall at (-3,0)");
+        tester.assertEqual("getX", {}, 0, "User1 should start at an X position of 0");
+        tester.assertEqual("getY", {}, 0, "User1 should start at an Y position of 0");
+        tester.assertEqual("hasWall", { x : -3, y : 0 }, true, "Wall should have been created at position (-3,0)");
+        log("Moving the user left to (-1,0)");
+        tester.createTransaction("moveLeft", {});
+        tester.assertEqual("getX", {}, -1, "User1 should have a X position of -1 after moving left");
+        tester.assertEqual("getY", {}, 0, "User1 still be at a Y position of 0");
+        log("Moving the user left to (-2,0)");
+        tester.createTransaction("moveLeft", {});
+        tester.assertEqual("getX", {}, -2, "User1 should have a X position of -2 after moving left");
+        tester.assertEqual("getY", {}, 0, "User1 still be at a Y position of 0");
+        log("Trying to move user left to (-3,0), however a wall is in the way");
+        tester.createTransaction("moveLeft", {});
+        tester.assertEqual("getX", {}, -2, "User1 should not have been able to move left as a wall was in -3");
+        tester.assertEqual("getY", {}, 0, "User1 still be at a Y position of 0");
+        tester.assertEqual("hasWall", { x : -3, y : 0 }, true, "Wall should be in original starting position");
+        log("Confirming users could not walk into the wall, and were stuck at (-2,0)");
          return tester;
-        /**
-            let vm = virtualMachineExporter.getVirtualMachine();
-            vm.addModule(moduleExporter.createModule({
-                module : "Game", 
-                initialData : { walls : [[1, 1, 1], [0, 0, 0], [0, 0, 0]] },
-                initialUserData : { x : 2, y : 1 },
-                functions : {
-                    moveLeft : function(container, changeContext) {
-                        let gameData = container.getModuleData();
-                        let userData = container.getSenderData();
-                        let walls = gameData["walls"];
-                        if (walls[userData.x - 1][userData.y] == 0) {
-                            changeContext.subtract(1, { user : container.sender, key : "x" });
-                        }
-                        return changeContext;
-                    },
-                    getX : function(container) {
-                        return container.getSenderData().x;
-                    },
-                    getY : function(container) {
-                        return container.getSenderData().y;
-                    },
-                    moveRightDependantLocal : function(container, changeContext) {
-                        let userX = container.getter({function : "getX"}, changeContext);
-                        if (container.getModuleData()["walls"][userX + 1][container.getSenderData().y] == 0) {
-                            changeContext.add(1, { user : container.sender, key : "x" });
-                        }
-                        return changeContext;
-                    },
-                    moveRightDependantGlobal : function(container, changeContext) {
-                        let userX = container.getter({function : "getX"}, changeContext);
-                        let isGlobalStateTrue = container.getter({ module : "Reliant", function : "doesMatchState", args : { state : "ThisIsTheState" } }, changeContext);
-                        if (isGlobalStateTrue && container.getModuleData()["walls"][userX + 1][container.getSenderData().y] == 0) {
-                            changeContext.add(1, { user : container.sender, key : "x" });
-                        }
-                        return changeContext;
-                    },
-                    moveUpThenLeft : function(container, changeContext) {
-                        let userData = container.getSenderData();
-                        if (container.getModuleData()["walls"][userData.x][userData.y + 1] == 0) {
-                            changeContext.add(1, { user : container.sender, key : "y" });
-                        }
-                        container.invoke({ function : "moveLeft" }, changeContext);
-                        return changeContext;
-                    }
-                }
-            }));
-
-            vm.addModule(moduleExporter.createModule({
-                module : "Reliant",
-                initialData : { state : "ThisIsTheState" },
-                initialUserData : {},
-                functions : {
-                    doesMatchState : function(container) {
-                        return container.getModuleData().state == container.args.state;
-                    }
-                }
-            }));
-
-            let tester = moduleTester.beginTest("Game", "ABC");
-            
-            tester.assertEqual("getX", {}, 2, "ABC should start as x position 2");
-            tester.invoke("moveLeft");
-            tester.assertEqual("getX", {}, 1, "ABC should have x of 1 after moving left");
-            tester.invoke("moveLeft");
-            tester.assertEqual("getX", {}, 1, "ABC should have x of 1 after moving left again cause they hit wall at 1");
-            tester.invoke("moveRightDependantLocal");
-            tester.assertEqual("getX", {}, 2, "ABC should have x of 2 after moving right");
-            tester.invoke("moveLeft");
-            tester.assertEqual("getX", {}, 1, "Move back to 1 so we can move right");
-            tester.invoke("moveRightDependantGlobal");
-            tester.assertEqual("getX", {}, 2, "ABC should have x of 2 after moving right");
-            tester.invoke("moveUpThenLeft");
-            tester.assertEqual("getY", {}, 2, "ABC should have y of 2 after moving up");
-            tester.assertEqual("getX", {}, 1, "ABC should have x of 1 after moving left");
-
-            tester.endTest();
-         */
      },
      /**
       * 2) The Seed module can be created with the base world having proper data
       */
      SeedModule_SuccessfullyCreated : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        // Assert "SEED" is Seed.symbol
-        // Assert 4 is Seed.decimals
-        // Assert 1000 is Seed.totalSupply
-        // Assert owner has the starting 1000 SEED
-        tester.assertExpression(false, "NOT IMPLEMENTED");
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting Seed's data was loaded (Symbol was \"SEED\", goes to fourth decimal place, defaulted to 1000 SEED");
+        tester.assertEqual("getSymbol", {}, "SEED", "The symbol of Seed should be \"SEED\"");
+        tester.assertEqual("getDecimals", {}, 4, "Seed should have 4 decimal points");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        log("Asserting the initial 1000 SEED supply went to the creator")
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
         return tester;
      },
      /**
@@ -173,27 +139,60 @@ module.exports = {
       */
      SeedModule_TransfersBetweenUsers : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        // User1 sends 500 Seed to User2
-        // Assert User1 has 500, User2 has 500
-        // User1 sends 250 Seed to User3
-        // Assert User1 has 250, User3 has 250
-        // User1 sends 250 Seed to User4
-        // Assert User1 has 0, User4 has 250
-        // User1 tries to send 50 Seed to User5, however fails
-        // Assert User1 has 0, User5 has 0 (or undefined)
-        // User2 sends 50 to User3
-        // Assert User2 has 450, User3 has 300
-        // User3 sends 150 to User5
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
+        
+        log("User1 sends 500 Seed to User2");
+        tester.createTransaction("transfer", { to : tester.getAccount("User2"), value : 500 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 500, "Creator shoud have 500 SEED after sending 500");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 500, "User2 should have 500 SEED after receiving it");
+
+        log("User1 sends 250 Seed to User3");
+        tester.createTransaction("transfer", { to : tester.getAccount("User3"), value : 250 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 250, "Creator shoud have 250 SEED after sending 500+250");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 250, "User3 should have 250 SEED after receiving it");
+
+        log("User1 sends 250 Seed to User4");
+        tester.createTransaction("transfer", { to : tester.getAccount("User4"), value : 250 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 0, "Creator shoud have 0 SEED after sending 500+250+250");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User4") }, 250, "User4 should have 250 SEED after receiving it");
+
+        log("User1 tries to send 50 Seed to User4, however fails as they ran out");
+        tester.createTransaction("transfer", { to : tester.getAccount("User4"), value : 50 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 0, "Creator shoud have 0 SEED still cause none sent");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User4") }, 250, "User4 should still have 250 SEED as they did not receive any more");
+
+        tester.switchUser("User2");
+        log("User2 sends 50 to User3");
+        tester.createTransaction("transfer", { to : tester.getAccount("User3"), value : 50 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 450, "User2 should have 450 SEED 500-50");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 300, "User3 should have 300 SEED as 250+50");
+
+        tester.switchUser("User3");
+        log("User3 sends 150 to User5");
+        tester.createTransaction("transfer", { to : tester.getAccount("User5"), value : 150 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 150, "User3 should have 150 SEED as 300-150");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User5") }, 150, "User5 should have received 150 SEED");
+
+        log("User3 tries to send 200 Seed to User5, however fails as they have insufficient funds");
         // Assert User3 has 150, User5 has 150
-        // User3 tries to send 200 Seed to User5, however fails
-        // Assert User3 has 150, User5 has 150
-        // User3 tries to send 150 to User5
+        tester.createTransaction("transfer", { to : tester.getAccount("User5"), value : 200 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 150, "User3 should not have sent any SEED");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User5") }, 150, "User5 should not have received any SEED");
+
+        log("User3 sends 150 to User5");
         // Assert User3 has 0, User5 has 300
-        tester.assertExpression(false, "NOT IMPLEMENTED");
+        tester.createTransaction("transfer", { to : tester.getAccount("User5"), value : 150 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 0, "User3 should have sent the last of their SEED");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User5") }, 300, "User5 should have received another 150 SEED (150+150)");
+        
         return tester;
      },
      /**
@@ -201,19 +200,34 @@ module.exports = {
       */
      SeedModule_ApprovingAllowancesAndTransferingThem : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        // User1 approves User2 to send 200 Seed
-        // Assert User1 has an allowance to User2 of 200 Seed
-        // User2 sends 100 Seed from User1 to User3
-        // Assert User1 has 900 Seed, User1 has an allowance to User2 of 100 Seed, and User3 has 100 Seed
-        // User2 sends 100 Seed from User1 to User2
-        // Assert User1 has 800 Seed, User1 has an allowance to User2 of 0 Seed, and User2 has 100 Seed
-        // User2 tries to send 100 Seed from User1 to User2, however fails
-        // Assert User1 still has 800 Seed, User2 still has 100 Seed, and the allowance is still 0
-        tester.assertExpression(false, "NOT IMPLEMENTED");
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
+        log("User1 approves User2 to send 200 Seed");
+        tester.createTransaction("approve", { spender : tester.getAccount("User2"), value : 200 });
+        tester.assertEqual("getAllowance", { owner : tester.getAccount("User1"), spender : tester.getAccount("User2") }, 200, "User2's allowance should be limited at 200 SEED" );
+        tester.switchUser("User2");
+        log("User2 sends 100 Seed from User1 to User3");
+        tester.createTransaction("transferFrom", { from : tester.getAccount("User1"), to : tester.getAccount("User3"), value : 100 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 900, "User1 should have 900 SEED as User2 sent 100 of their 1000");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 100, "User3 should have received 100 SEED");
+        tester.assertEqual("getAllowance", { owner : tester.getAccount("User1"), spender : tester.getAccount("User2") }, 100, "User2's allowance should have only 100 remaining" );
+        log("User2 sends 100 Seed from User1 to User2");
+        tester.createTransaction("transferFrom", { from : tester.getAccount("User1"), to : tester.getAccount("User2"), value : 100 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 800, "User1 should have 800 SEED as User2 spent the full 200 alowance");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 100, "User2 should have received 100 SEED");
+        tester.assertEqual("getAllowance", { owner : tester.getAccount("User1"), spender : tester.getAccount("User2") }, 0, "User2's allowance should be at zero as they spent it all" );
+        log("User2 tries to send 100 Seed from User1 to User2, however fails as their allowance has run out");
+        tester.createTransaction("transferFrom", { from : tester.getAccount("User1"), to : tester.getAccount("User2"), value : 100 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 800, "User1 should still have 800 SEED, as none should have been sent");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 100, "User2 should still have 100 SEED, as none should have been received");
+        tester.assertEqual("getAllowance", { owner : tester.getAccount("User1"), spender : tester.getAccount("User2") }, 0, "User2's allowance should still be at zero" );
         return tester;
      },
     /**
@@ -221,109 +235,83 @@ module.exports = {
      */
     SeedModule_BurningCurrency : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        // Assert User1 has 1000 Seed
-        // Assert the totalSupply is 1000
-        // User1 burns 150 Seed
-        // Assert User1 has 850 Seed
-        // Assert the totalSupply is 850 Seed
-        // User1 transfers 100 Seed to User2
-        // Assert User1 has 750 Seed and User2 has 100 Seed
-        // User2 burns 25 Seed
-        // Assert User1 has 750, User2 has 75, and the totalSupply is 825
-        tester.assertExpression(false, "NOT IMPLEMENTED");
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
+        log("User1 burns 150 Seed");
+        tester.createTransaction("burn", { value : 150 });
+        tester.assertEqual("getTotalSupply", {}, 850, "There should be 850 SEED in circulation (1000-150)");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 850, "The creator should have 850 SEED after burning 150");
+        log("User1 transfers 100 Seed to User2");
+        tester.createTransaction("transfer", { to : tester.getAccount("User2"), value : 100 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 750, "User1 has 750 SEED after transfering 100 from their 850");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 100, "User2 should have received 100 SEED");
+        tester.switchUser("User2");
+        log("User2 burns 25 Seed");
+        tester.createTransaction("burn", { value : 25 });
+        tester.assertEqual("getTotalSupply", {}, 825, "There should be 825 SEED in circulation (1000-150-25)");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 750, "The creator should have 750 SEED");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 75, "User2 should have 75 SEED after burning 25");
         return tester;
     },
     /**
-     * 6) The Seed module can be created, with callbacks hooked-up, which change values. The end values should match expected ones.
-     */
-    SeedModule_AppSubscriptionCallbacks : function(log) {
-        let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        // Subscribe for Seed."totalSupply" changing
-        // Subscribe for Seed.User1."balance" changing
-        // Subscribe for Seed.burn invoking
-        // Assert totalSupply is 1000
-        // Assert User1 has 1000
-        // User1 sends 50 Seed to User2
-        // Assert subscribed changed "user1Loss" to 50
-        // User1 burns 25
-        // Assert subscribed changed "user1Loss" to 75
-        // Assert subscribed changed "totalSupplyLoss" to 25
-        // Assert subscribed changed "burned" to 25
-        // Assert User1 has 925
-        // Assert totalSupply has 975
-        tester.assertExpression(false, "NOT IMPLEMENTED");
-        return tester;
-    },
-    /**
-     * 7) The Seed module can be created, with a complex system of transfers/approvals/burning occurs, and callbacks working as intended
+     * 6) The Seed module can be created, with a complex system of transfers/approvals/burning occurs, and callbacks working as intended
      */
     SeedModule_ComplexScenario_TransfersAllowancesBurningAndSubscriptions : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
-        tester.assertExpression(false, "NOT IMPLEMENTED");
-        /**
-            console.log("### Seed Scenario Setup Test ###");
-            let tester = moduleTester.beginTest("Seed", "ABC", true);
-            tester.relay();
-            tester.relay();
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("ABC") }, 1000, "Creator should start with 1000 SEED");
-            tester.assertEqual("getSymbol", {}, "SEED", "The symbol of Seed should be \"SEED\"");
-            tester.assertEqual("getDecimals", {}, 4, "Seed should have 4 decimal points");
-            tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
-            tester.assertEqual("getAllowance", { owner : tester.getAccount("ABC"), spender : tester.getAccount("DEF") }, undefined, "Get allowance is unset for user who has never used Seed before" );
-
-            tester.switchUser("ABC");
-            tester.createTransactionWithRelay("approve", { spender : tester.getAccount("DEF"), value : 250 });
-            tester.relay();
-
-            tester.switchUser("DEF");
-            tester.createTransactionWithRelay("transferFrom", { from : tester.getAccount("ABC"), to : tester.getAccount("DEF"), value : 100 });
-            tester.createTransactionWithRelay("transferFrom", { from : tester.getAccount("ABC"), to : tester.getAccount("GHI"), value : 100 });
-            tester.relay();
-            tester.relay();
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("ABC") }, 800, "Owner should still have 800 SEED");
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("DEF") }, 100, "DEF sent 100 SEED to himself");
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("GHI") }, 100, "GHI received 100 SEED from DEF on ABC's behalf");
-
-            tester.switchUser("GHI");
-            tester.createTransactionWithRelay("transfer", { to : tester.getAccount("ABC"), value : 50 });
-            tester.relay();
-            tester.relay();
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("ABC") }, 850, "ABC should have received 50 from GHI");
-
-            tester.switchUser("DEF");
-            tester.createTransactionWithRelay("burn", { value : 25 });
-            tester.relay();
-            tester.relay();
-            tester.assertEqual("getBalanceOf", { owner : tester.getAccount("DEF") }, 75, "DEF should have 75 after burning 25, removing it from circulation");
-            tester.assertEqual("getTotalSupply", {}, 975, "25 coins were burned, removed from circulation, since initial 1000 creation");
-
-            //squasherExporter.transactionsToBlock(Object.values(entanglementExporter.getEntanglement().transactions));
-
-            tester.endTest();
-         */
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting Seed's data was loaded (Symbol was \"SEED\", goes to fourth decimal place, defaulted to 1000 SEED");
+        tester.assertEqual("getSymbol", {}, "SEED", "The symbol of Seed should be \"SEED\"");
+        tester.assertEqual("getDecimals", {}, 4, "Seed should have 4 decimal points");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        log("Asserting the initial 1000 SEED supply went to the creator")
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
+        log("User1 approves User2 for an allowance of 250");
+        tester.createTransaction("approve", { spender : tester.getAccount("User2"), value : 250 });
+        tester.switchUser("User2");
+        log("User2 sends User2 100 SEED on User1's behalf");
+        tester.createTransaction("transferFrom", { from : tester.getAccount("User1"), to : tester.getAccount("User2"), value : 100 });
+        log("User2 sends User3 100 SEED on User1's behalf");
+        tester.createTransaction("transferFrom", { from : tester.getAccount("User1"), to : tester.getAccount("User3"), value : 100 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 800, "Owner should still have 800 SEED");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 100, "DEF sent 100 SEED to himself");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User3") }, 100, "GHI received 100 SEED from DEF on User1's behalf");
+        tester.switchUser("User3");
+        log("User3 sends User1 50 SEED");
+        tester.createTransaction("transfer", { to : tester.getAccount("User1"), value : 50 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 850, "User1 should have received 50 from GHI");
+        tester.switchUser("User2");
+        log("User2 burns 25 SEED");
+        tester.createTransaction("burn", { value : 25 });
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 75, "DEF should have 75 after burning 25, removing it from circulation");
+        tester.assertEqual("getTotalSupply", {}, 975, "25 coins were burned, removed from circulation, since initial 1000 creation");
         return tester;
     },
     /**
-     * 8) The Seed module can be created, with a user forging a malcious transaction, which fails to be added
+     * 7) The Seed module can be created, with a user forging a malcious transaction, which fails to be added
      */
     SeedSystem_ForgingMaliciousTransactionsFailToBeAccepted : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
         // Do some legit transactions
         // User2 tries to create a "forged" transaction which modifies data after creation, fails
         // Assert the forgery changed nothing
@@ -335,14 +323,19 @@ module.exports = {
         return tester;
     },
     /**
-     * 9) The Seed module can be created, with a user forging history, but a transaction refutes it. After rechecking, forger is removed, and refuter is accepted
+     * 8) The Seed module can be created, with a user forging history, but a transaction refutes it. After rechecking, forger is removed, and refuter is accepted
      */
     SeedSystem_ForgedHistoryCanBeRefutedAndRepaired : function(log) {
         let tester = moduleTester.beginTest("Seed", "User1");
-        // Get Seed Module
-        // Get VM
-        // Add Seed to VM
-        // Invoke Constuctor
+        let vm = virtualMachineExporter.getVirtualMachine();
+        vm.addModule(relayExporter.getModule());
+        log("Loading Seed Module");
+        vm.addModule(seedExporter.getModule());
+        log("Invoking Seed Constructor");
+        tester.createTransaction("constructor", { initialSeed : 1000 });
+        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
+        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
+        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
         // Do some legit transactions
         // Modify a transaction currently in entanglement
         // Create a transaction whcih refutes the forged transaction

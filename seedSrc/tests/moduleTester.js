@@ -146,7 +146,10 @@ class ModuleTester{
      * @return - The transaction created
      */
     createTransaction(functionName, args) {
-        return vm.createTransaction(this.currentUser, this.moduleName, functionName, args, this.simulateDAG ? 2 : 0);
+        let transaction = vm.createTransaction(this.currentUser, this.moduleName, functionName, args, this.simulateDAG ? 2 : 0);
+        this.relay();
+        this.relay();
+        return transaction;
     }
 
     /**

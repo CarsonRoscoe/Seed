@@ -163,16 +163,22 @@ let squashObjects = function(objectA, objectB) {
  * @param {*} dataB - Second data to merge
  */
 let squashDatas = function(dataA, dataB) {
-    switch(typeof dataA) {
-        // If the old data was a number
-        case "number":
-            // Number changes are relative
-            return dataA + dataB;
-        case "string":
-            return dataB;
-        case "object":
-            // Objets are absolute and Object.assigned over
-            return squashObjects(dataA, dataB);
+    if (dataA && dataB) {
+        switch(typeof dataA) {
+            // If the old data was a number
+            case "number":
+                // Number changes are relative
+                return dataA + dataB;
+            case "string":
+                return dataB;
+            case "object":
+                // Objets are absolute and Object.assigned over
+                return squashObjects(dataA, dataB);
+        }
+    } else if (dataA != undefined) {
+        return dataA;
+    } else if (dataB != undefined) {
+        return dataB;
     }
     console.info("ERROR: Datas to squash were not a number, string or object", typeof dataA, dataA, typeof dataB, dataB);
 }
