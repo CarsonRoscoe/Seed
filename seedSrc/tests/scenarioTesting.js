@@ -29,6 +29,7 @@ const entanglementExporter = require("../entanglement.js");
 const ledgerExporter = require("../ledger.js");
 const messagingExporter = require("../messaging.js");
 const squasherExporter = require("../squasher.js");
+const blockchainExporter = require("../blockchain.js");
 
 module.exports = {
     runAllScenarioTests : function(verbose, log) {
@@ -39,11 +40,15 @@ module.exports = {
             let scenarioTestName = Object.keys(scenarioTests)[i];
             let scenarioTest = scenarioTests[scenarioTestName];
             log("### Running Scenario Test " + scenarioTestName);
-            // Clear Entanglement/Blockchain/Ledger
+            entanglementExporter.clearAll();
+            blockchainExporter.clearAll();
+            ledgerExporter.clearAll();
             let result = scenarioTest(log);
             result.endTest();
         }
-        // Clear Entanglement/Blockchain/Ledger
+        entanglementExporter.clearAll();
+        blockchainExporter.clearAll();
+        ledgerExporter.clearAll();
 
     }
  }
