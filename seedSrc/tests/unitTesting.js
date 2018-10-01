@@ -13,7 +13,7 @@ module.exports = {
      * 
      * @param verbose - Whether to write extra debug lines or not
      */
-    runAllUnitTests : function(verbose) {
+    runAllUnitTests : function(verbose, log) {
         console.info("#### Running All Unit Tests");
 
         // Hard-Coded subsystems to test
@@ -33,23 +33,6 @@ module.exports = {
             Storage : require("../storage/storage.js").getUnitTests(),
             Messaging : require("../messaging.js").getUnitTests()
         };
-
-        // Function used for logging internally in tests
-        let log = function(param1, param2, param3) {
-            if (verbose) {
-                if (!param3) {
-                    if (!param2) {
-                        if (param1) {
-                            console.log(param1);
-                        }
-                    } else {
-                        console.info(param1, param2);
-                    }
-                } else {
-                    console.info(param1, param2, param3);
-                }
-            }
-        }
 
         let test = new Test(verbose);
 

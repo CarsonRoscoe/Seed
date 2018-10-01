@@ -8,7 +8,7 @@
  */
 
 const virtualMachineExporter = require("./virtualMachine/virtualMachine.js");
-const scenarioTestExporter = require("./scenarioTest.js");
+const scenarioTestExporter = require("./tests/scenarioTesting.js");
 const messagingExporter = require("./messaging.js");
 const seedExporter = require("../clientSrc/modules/seed/seed.js");
 const relayExporter = require("../clientSrc/modules/relay/relay.js");
@@ -22,6 +22,7 @@ const blockchainExporter = require("./blockchain.js");
 const fileSystemInjectorExporter = require("./storage/fileSystemInjector.js");
 const localStorageInjectorExporter = require("./storage/localStorageInjector.js");
 const unitTestingExporter = require("./tests/unitTesting.js");
+const testingExporter = require("./tests/testing.js");
 const clientExporter = require("./networking/client.js");
 
 module.exports = {
@@ -94,6 +95,12 @@ module.exports = {
      */
     getUnitTestingExporter : function() {
         return unitTestingExporter;
+    },
+    /**
+     * @return - The Testing exporter for unit tests
+     */
+    getTestingExporter : function() {
+        return testingExporter;
     },
     /**
      * @return - The Client exporter for networking with Relay Nodes

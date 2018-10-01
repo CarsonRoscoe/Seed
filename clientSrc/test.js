@@ -24,7 +24,7 @@ moduleLoader.loadModules();
 
 // Confirm all subsystems work
 
-seed.getUnitTestingExporter().runAllUnitTests(commands.verbose);
+seed.getTestingExporter().runAllTests(commands.verbose);
 
 // Clear all subsystems  
 
