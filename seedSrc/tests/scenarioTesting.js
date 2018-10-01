@@ -297,52 +297,5 @@ module.exports = {
         tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User2") }, 75, "DEF should have 75 after burning 25, removing it from circulation");
         tester.assertEqual("getTotalSupply", {}, 975, "25 coins were burned, removed from circulation, since initial 1000 creation");
         return tester;
-    },
-    /**
-     * 7) The Seed module can be created, with a user forging a malcious transaction, which fails to be added
-     */
-    SeedSystem_ForgingMaliciousTransactionsFailToBeAccepted : function(log) {
-        let tester = moduleTester.beginTest("Seed", "User1");
-        let vm = virtualMachineExporter.getVirtualMachine();
-        vm.addModule(relayExporter.getModule());
-        log("Loading Seed Module");
-        vm.addModule(seedExporter.getModule());
-        log("Invoking Seed Constructor");
-        tester.createTransaction("constructor", { initialSeed : 1000 });
-        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
-        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
-        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
-        // Do some legit transactions
-        // User2 tries to create a "forged" transaction which modifies data after creation, fails
-        // Assert the forgery changed nothing
-        // User2 tries to create a "forged" transaction which modified data, then rehashes/signs it, fails
-        // Assert the forgery changed nothing
-        // Do something legit
-        // Assert legit thing happened still
-        tester.assertExpression(false, "NOT IMPLEMENTED");
-        return tester;
-    },
-    /**
-     * 8) The Seed module can be created, with a user forging history, but a transaction refutes it. After rechecking, forger is removed, and refuter is accepted
-     */
-    SeedSystem_ForgedHistoryCanBeRefutedAndRepaired : function(log) {
-        let tester = moduleTester.beginTest("Seed", "User1");
-        let vm = virtualMachineExporter.getVirtualMachine();
-        vm.addModule(relayExporter.getModule());
-        log("Loading Seed Module");
-        vm.addModule(seedExporter.getModule());
-        log("Invoking Seed Constructor");
-        tester.createTransaction("constructor", { initialSeed : 1000 });
-        log("Asserting the initial supply was 1000 SEED, and it all went to User1");
-        tester.assertEqual("getTotalSupply", {}, 1000, "1000 SEED should be in circulation upon creation");
-        tester.assertEqual("getBalanceOf", { owner : tester.getAccount("User1") }, 1000, "Creator should start with 1000 SEED");
-        // Do some legit transactions
-        // Modify a transaction currently in entanglement
-        // Create a transaction whcih refutes the forged transaction
-        // Assert the refuter stayed with refutee being removed
-        // Assert the refuter's data changed the ledger
-        // Assert the refutee's data did not change the ledger
-        tester.assertExpression(false, "NOT IMPLEMENTED");
-        return tester;
     }
  }
