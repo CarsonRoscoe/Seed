@@ -255,6 +255,25 @@ function seedUpdate() {
                     changeInnerHTML("seedAddress", "\"" + lastUser + "\"");
                 });
         });
+
+    seedHLAPI.getHistory("Seed").then((transactions) => {
+        let innerHTML = "\"";
+        for(let i = 0; i < transactions.length; i++) {
+            let transaction = transactions[i];
+            let newRow = "";
+            newRow += "<tr>";
+            newRow += "<td>" + transaction.sender.substr(0,4) + "</td>";
+            newRow += "<td>" + transaction.execution.functionName + "</td>";
+            newRow += "<td>" + JSON.stringify(transaction.execution.args) + "</td>";
+            newRow += "</tr>";
+            innerHTML += newRow.split("\"").join("&quot;");
+        }
+        innerHTML += "\"";
+        if (transactions.length > 0) {
+            console.log(innerHTML);
+            changeInnerHTML("txHistory", innerHTML);
+        }
+    });
 }
 
 /**

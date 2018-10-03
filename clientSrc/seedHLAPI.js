@@ -215,4 +215,13 @@ class SeedHLAPI {
     reloadEntanglementAndBlockchainsState() {
         return this.ipcPromiseRenderer.send("reloadEntanglementAndBlockchainsState");
     }
+
+    /**
+     * Gets the historic transaction data for all known transactions belonging to the given module name.
+     * 
+     * @param {*} moduleName - Name of the object whose history is being fetched
+     */
+    getHistory(moduleName) {
+        return this.ipcPromiseRenderer.send("getHistory", moduleName);
+    }
  }

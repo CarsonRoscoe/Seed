@@ -169,6 +169,60 @@ module.exports = {
             }
         }
         return blocks;
+    },
+    /**
+     * Fetches all transactions from the blockchains, in order of occurance
+     */
+    getAllTransactions : function() {
+        let transactions = [];
+        let keys = Object.keys(blockchain);
+        keys.sort();
+
+        for(let i = 0; i < keys.length; i++) {
+            let chain = blockchain[keys[i]];
+            chain.sort((a, b) => {
+                return a.timestamp - b.timestamp
+            });
+            for(let j = 0; j < chain.length; j++) {
+                let block = chain[j];
+                let blockTransactions = JSON.parse(block.transactions);
+                let txHashes = Object.keys(blockTransactions);
+                for(let k = 0; k < txHashes.length; k++) {
+                    let blockTx = blockTransactions[txHashes[k]];
+                    let moduleChecksum = blockTx[1];
+                    let functionChecksum = blockTx[2];
+                    let cachedModule = moduleExporter.getModule(moduleChecksum);
+                    transactions.push({
+                        transactionHash : txHashes[k],
+                        sender : blockTx[0],
+                        execution : {
+                            moduleName : cachedModule.module,
+                            functionName : cachedModule.getFunctionNameByChecksum(functionChecksum),
+                            args : JSON.parse(blockTx[3]),
+                        },
+                        signature : blockTx[4]
+                    });
+                }
+            }
+        }
+        return transactions;
+    },
+    /**
+     * Fetches all transactions stored in the blockchains, in order of occurance, which
+     * belong to the given module name.
+     * 
+     * @param {*} moduleName - The name of the module which the transactions belong to
+     */
+    getHistory : function(moduleName) {
+        let allTransactions = this.getAllTransactions();
+        let transactions = [];
+        for(let i = 0; i < allTransactions.length; i++) {
+            let transaction = allTransactions[i];
+            if (transaction.execution.moduleName == moduleName) {
+                transactions.push(transaction);
+            }
+        }
+        return transactions;
     }
  }
  
@@ -177,6 +231,7 @@ module.exports = {
  const storageExporter = require("./storage/storage.js");
  const unitTestingExporter = require("./tests/unitTesting.js");
  const conformHelper = require("./helpers/conformHelper.js");
+ const moduleExporter = require("./module.js");
 
  // The mapping of blocks in the blockchain 
  let blockchain = {}

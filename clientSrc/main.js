@@ -450,5 +450,14 @@ promiseIpc.on("reloadEntanglementAndBlockchainsState", () => {
     }
 });
 
+/**
+ * Gets the historic transaction data for all known transactions belonging to the given module name.
+ */
+promiseIpc.on("getHistory", (moduleName) => {
+    let blockchainTransactions = seed.getBlockchainExporter().getHistory(moduleName);
+    let entanglementTransactions = seed.getEntanglementExporter().getHistory(moduleName);
+    return blockchainTransactions.concat(entanglementTransactions);
+});
+
 // Switch to the first user for testing
 switchAccount("ABC");

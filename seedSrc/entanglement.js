@@ -231,6 +231,30 @@ module.exports = {
                 }
             }
         }
+    },
+    /**
+     * Fetches all transactions stored in the entanglement, in order of occurance, which
+     * belong to the given module name.
+     * 
+     * @param {*} moduleName - The name of the module which the transactions belong to
+     */
+    getHistory : function(moduleName) {
+        let result = [];
+        if (entanglement) {
+            let sortByTimestamp = function(a, b){
+                return a.timestamp - b.timestamp
+            };
+
+            let hashes = Object.keys(entanglement.transactions);
+            for(let i = 0; i < hashes.length; i++) {
+                let transaction = entanglement.transactions[hashes[i]];
+                if (transaction.execution.moduleName == moduleName) {
+                    result.push(transaction);
+                }
+            }
+            result.sort(sortByTimestamp);
+        }
+        return result;
     }
  }
 

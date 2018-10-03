@@ -42,6 +42,17 @@ module.exports = {
      */
     getCachedModules : function() {
         return cachedModules;
+    },
+    /**
+     * Fetches a module from cache based on its checksum
+     */
+    getModule : function(moduleChecksum) {
+        for(let i = 0; i < cachedModules.length; i++) {
+            let cachedModule = cachedModules[i];
+            if (cachedModule.moduleChecksum == moduleChecksum) {
+                return cachedModule;
+            }
+        }
     }
  }
 
@@ -138,6 +149,24 @@ module.exports = {
      */
     getFunctionByHash(hash) {
         return this.functions[hash];
+    }
+
+    /**
+     * Getter returning a functions name based upon its checksum
+     * 
+     * @param {string} checksum - The checksum of the function hash of the function whose name we are searching for
+     * 
+     * @return - The name of the function
+     */
+    getFunctionNameByChecksum(checksum) {
+        let functionNames = Object.keys(this.functionHashes);
+        for(let i = 0; i < functionNames.length; i++) {
+            let name = functionNames[i];
+            let hash = this.functionHashes[name];
+            if (checksum == hash.substr(0,4)) {
+                return name;
+            }
+        }
     }
 
     /**
