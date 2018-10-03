@@ -187,9 +187,9 @@ function construct() {
  */
 function transfer() {
     let value = inputData["transfer"].value;
-    let address = inputData["transfer"].address;
-    if (value != 0 && address != "") {
-        seedHLAPI.createAndPropagateTransaction("Seed", "transfer", { to : address, value : value }).catch((e) => {
+    let publicKey = seedHLAPI.publicAddressToPublicKey(inputData["transfer"].address);
+    if (value != 0 && publicKey != "") {
+        seedHLAPI.createAndPropagateTransaction("Seed", "transfer", { to : publicKey, value : value }).catch((e) => {
             console.info("ERROR: ", e);
         });
     }
@@ -202,10 +202,10 @@ function transfer() {
  */
 function transferFrom() {
     let value = inputData["transferFrom"].value;
-    let fromAddress = inputData["transferFrom"].fromAddress;
-    let toAddress = inputData["transferFrom"].toAddress;
-    if (value != 0 && fromAddress != "" && toAddress != "") {
-        seedHLAPI.createAndPropagateTransaction("Seed", "transferFrom", { from : fromAddress, to : toAddress, value : value }).catch((e) => {
+    let fromPublicKey = seedHLAPI.publicAddressToPublicKey(inputData["transferFrom"].fromAddress);
+    let toPublicAddress = seedHLAPI.publicAddressToPublicKey(inputData["transferFrom"].toAddress);
+    if (value != 0 && fromPublicKey != "" && toPublicAddress != "") {
+        seedHLAPI.createAndPropagateTransaction("Seed", "transferFrom", { from : fromPublicKey, to : toPublicAddress, value : value }).catch((e) => {
             console.info("ERROR: ", e);
         });
     }
@@ -217,9 +217,9 @@ function transferFrom() {
  */
 function approve() {
     let value = inputData["approve"].value;
-    let address = inputData["approve"].address;
-    if (value != 0 && address != undefined) {
-        seedHLAPI.createAndPropagateTransaction("Seed", "approve", { spender : address, value : value }).catch((e) => {
+    let publicAddress = seedHLAPI.publicAddressToPublicKey(inputData["approve"].address);
+    if (value != 0 && publicAddress != undefined) {
+        seedHLAPI.createAndPropagateTransaction("Seed", "approve", { spender : publicAddress, value : value }).catch((e) => {
             console.info("ERROR: ", e);
         });
     }
@@ -245,11 +245,11 @@ function burn() {
 function seedUpdate() {
     seedHLAPI.getAccount()
         .then((account) => {
-            if (lastUser != account.publicKey) {
+            if (lastUser != account.publicAddress) {
                 resubscribe(account.publicKey);
             }
-            lastUser = account.publicKey;
-            seedHLAPI.getter("Seed", "getBalanceOf", { owner : lastUser })
+            lastUser = account.publicAddress;
+            seedHLAPI.getter("Seed", "getBalanceOf", { owner : account.publicKey })
                 .then((balance) => {
                     changeInnerHTML("seedBalance", balance);
                     changeInnerHTML("seedAddress", "\"" + lastUser + "\"");

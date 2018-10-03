@@ -311,7 +311,7 @@ promiseIpc.on("propagateTransaction", (jsonTransaction) => {
     if (commands.client) {
         client = seed.getClientExporter().getClient();
     } else if (commands.relay) {
-        let relayNode = seed.getRelayExporter().getRelayNode();
+        let relayNode = seed.getRelayNodeExporter().getRelayNode();
         if (relayNode.relayClients.length > 0) {
             client = relayNode.relayClients[0];
         }
@@ -424,7 +424,7 @@ promiseIpc.on("reconnectClientToNewIP", (relayIP) => {
         client.disconnect();
         client.connect(relayIP);
     } else if (command.relay) {
-        let relayNode = seed.getRelayExporter().getRelayNode();
+        let relayNode = seed.getRelayNodeExporter().getRelayNode();
         let newClient = seed.getClientExporter().newClient();
         newClient.connect(relayIP);
         relayNode.relayClients.push(newClient);
@@ -440,7 +440,7 @@ promiseIpc.on("reloadEntanglementAndBlockchainsState", () => {
     if (command.client) {
         client = seed.getClientExporter().getClient();
     } else if (command.relay) {
-        let relayNode = seed.getRelayExporter().getRelayNode();
+        let relayNode = seed.getRelayNodeExporter().getRelayNode();
         if (relayNode.relayClients.length > 0) {
             client = relayNode.relayClients[0];
         }

@@ -20,6 +20,8 @@ module.exports = {
     }
  }
 
+ const seedLLAPI = require("../seedSrc/index.js");
+
  /**
   * Class which wraps communication with the Main process to access SeedHLAPI requests
   */
@@ -95,8 +97,12 @@ class SeedHLAPI {
      */
     createAndPropagateTransaction(moduleName, functionName, args, numOfValidations) {
         return this.createTransaction(moduleName, functionName, args, numOfValidations).then((transaction) => {
-            return this.propagateTransaction(transaction).then((result) => {
-            });
+            if (transaction) {
+                return this.propagateTransaction(transaction).then((result) => {
+                    return;
+                });
+            }
+            return;
         });
     }
 
@@ -223,5 +229,14 @@ class SeedHLAPI {
      */
     getHistory(moduleName) {
         return this.ipcPromiseRenderer.send("getHistory", moduleName);
+    }
+
+    /**
+     * Converts a public address to a public key synchronously
+     * 
+     * @param {*} publicAddress 
+     */
+    publicAddressToPublicKey(publicAddress) {
+        return seedLLAPI.getCryptographyExporter().newCryptoHelper().publicAddressToPublicKey(publicAddress);
     }
  }

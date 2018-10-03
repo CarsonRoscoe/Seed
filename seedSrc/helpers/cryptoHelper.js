@@ -98,6 +98,13 @@ class CryptoHelper {
         return base58Encoder.encode(bytes);
     }
 
+    publicAddressToPublicKey(publicAddress) {
+        if (!publicAddress || publicAddress == null || publicAddress == "") {
+            throw new Error("Public address cannot be null, empty or undefined");
+        }
+        return base58Encoder.decode(publicAddress).toString('hex');
+    }
+
     sign(privateKey, data) {
         let EC = require('elliptic').ec;
         let ec = new EC('secp256k1');

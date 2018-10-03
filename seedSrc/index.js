@@ -24,6 +24,8 @@ const localStorageInjectorExporter = require("./storage/localStorageInjector.js"
 const unitTestingExporter = require("./tests/unitTesting.js");
 const testingExporter = require("./tests/testing.js");
 const clientExporter = require("./networking/client.js");
+const relayNodeExporter = require("./networking/relayNode.js");
+const cryptoExporter = require("./helpers/cryptoHelper.js");
 
 module.exports = {
     /**
@@ -107,6 +109,18 @@ module.exports = {
      */
     getClientExporter : function() {
         return clientExporter;
+    },
+    /**
+     * @return - The RelayNode exporter for networking with Relay Nodes
+     */
+    getRelayNodeExporter : function() {
+        return relayNodeExporter;
+    },
+    /**
+     * @return - The Crypto exporter for all cryptography
+     */
+    getCryptographyExporter : function() {
+        return cryptoExporter;
     },
     /**
      * Subscribes for callback to be invoked whenever the given module has the given function validated
