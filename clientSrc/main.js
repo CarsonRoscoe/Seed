@@ -26,8 +26,13 @@ const moduleLoader = require("./moduleLoader");
 let hasCommand = (command) => {
     if (process.argv.length >= 2) {
         for(let i = 2; i < process.argv.length; i++) {
-            if (process.argv[i] == command) {
-                return true;
+            let processArgs = process.argv[i].split(':');
+            if (processArgs[0] == command) {
+                if (command != '--ip') {
+                    return true;
+                } else {
+                    return processArgs.slice(1);
+                }
             }
         }
     }
@@ -40,7 +45,8 @@ let hasCommand = (command) => {
 let commands = { 
     client : hasCommand('--client'),
     relay : hasCommand('--relay'),
-    storage : hasCommand('--storage')
+    storage : hasCommand('--storage'),
+    ip : hasCommand('--ip')
 }
 
 /**
@@ -125,11 +131,13 @@ app.on('ready', function() {
     if (commands.client) {
         let client = seed.getClientExporter().getClient();
         setTimeout(() => {
-            seed.getClientExporter().connectAndLoadState(client, 'http://localhost:' + port);
+            if (commands.ip && commands.ip.length > 0) {
+                seed.getClientExporter().connectAndLoadState(client, 'http://' + commands.ip[0] + ':' + port);
+            }
         }, 1000);
     } else if (commands.relay) {
         let relayNodeExporter = require("../seedSrc/networking/relayNode.js");
-        let relayNode = relayNodeExporter.getRelayNode(); // If we had IPs to connect to, they get fed in here.
+        let relayNode = relayNodeExporter.getRelayNode(commands.ip);
         relayNode.loadState();
         relayNode.listen(port);
     }
