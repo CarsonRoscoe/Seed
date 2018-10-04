@@ -551,6 +551,7 @@ class Transaction {
                 hashable += this.refutedTransactions[i];
             }
         }
+        hashable += this.timestamp;
         return hashable;
     }
 

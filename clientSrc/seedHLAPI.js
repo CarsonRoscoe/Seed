@@ -126,6 +126,7 @@ class SeedHLAPI {
      * @param {*} args - Arguments to pass to the function while invoking it
      */
     getter(moduleName, getterName, args) {
+        console.info("SENDING:", this.ipcPromiseRenderer, "getter", moduleName, getterName, args);
         return this.ipcPromiseRenderer.send("getter", moduleName, getterName, args);
     }
 

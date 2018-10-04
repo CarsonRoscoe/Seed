@@ -54,19 +54,22 @@ module.exports = {
      * 
      * @return - The lean transaction data from the blockchain, if any
      */
-    getTransaction : function(transactionHash, generation) {
-        if (!generation) {
-            generation = 1;
+    getTransaction : function(transactionHash, generations) {
+        if (!generations) {
+            generations = [1, 2, 3];
         }
-        let chain = blockchain[generation];
-        if (chain) {
-            for(let i = 0; i < chain.length; i++) {
-                let block = chain[i];
-                let transactions = JSON.parse(block.transactions);
-                let transactionHashes = Object.keys(transactions);
-                for(let j = 0; j < transactionHashes.length; j++) {
-                    if (transactionHashes[j] == transactionHash) {
-                        return transactions[transactionHash];
+        for(let i = 0; i < generations.length; i++) {
+            let generation = generations[i];
+            let chain = blockchain[generation];
+            if (chain) {
+                for(let i = 0; i < chain.length; i++) {
+                    let block = chain[i];
+                    let transactions = JSON.parse(block.transactions);
+                    let transactionHashes = Object.keys(transactions);
+                    for(let j = 0; j < transactionHashes.length; j++) {
+                        if (transactionHashes[j] == transactionHash) {
+                            return transactions[transactionHash];
+                        }
                     }
                 }
             }

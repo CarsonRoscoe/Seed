@@ -89,7 +89,7 @@ module.exports = {
             if (!entanglement.contains(child)) {
                 if (!blockchainExporter.doesContainTransactions(child)) {
                     console.info(transaction.transactionHash, "Failed To Find (1)", child);
-                    throw new Error("Trying to check transaction who's childs do not exist");
+                    throw new Error("Trying to check for transaction " + transaction.transactionHash + ", whose child " + child + " does not exist in either the entanglement or the blockchain");
                 }
             }
         }
@@ -554,7 +554,7 @@ const VALIDATION_LEVEL = {
      */
     entanglement_addsValidTransactionsToEntanglement : function(test, log) {
         let testTransaction = unitTestingExporter.getSeedConstructorTransaction();
-        let newTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let newTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.refutedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         module.exports.tryAddTransaction(newTransaction, false);
         test.assert(entanglement.contains(newTransaction.transactionHash), "Entanglement should have stored the valid transaction");
     },
@@ -563,7 +563,7 @@ const VALIDATION_LEVEL = {
      */
     entanglement_doesNotAddInvalidTransactions : function(test, log) {
         let testTransaction = unitTestingExporter.getTestTransactions()[0];
-        let invalidTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, undefined, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
+        let invalidTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.refutedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         test.assertFail(() => {
             module.exports.tryAddTransaction(invalidTransaction, false);
         }, "Entanglement should have thrown an error on this transaction for referring to transactions which don't exist"); 

@@ -356,8 +356,9 @@ class VirtualMachine {
                     throw new Error("Failed to get module");
                 }
             } else {
-                console.info("Simulated", localSimAsString, "Actual", transaction.execution.changeSet);
-                throw new Error("Failed to simulate tip");
+                //console.info("Simulated", localSimAsString, "Actual", transaction.execution.changeSet);
+                //throw new Error("Failed to simulate tip");
+                console.info("Failed to simulate the transaction tip", transaction.transactionHash);
             }
         }
         return result;

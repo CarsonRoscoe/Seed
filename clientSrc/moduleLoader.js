@@ -32,7 +32,7 @@ module.exports = {
                     // Add module to virtual machine
                     dappsToLoad[moduleJson.name] = moduleJson;
                 } else {
-                    throw new Error("Loaded module's checksum does not match expected checksum.");
+                    throw new Error("Loaded module's checksum does not match expected checksum. Got " + moduleToLoad.moduleChecksum + " while expecting " + moduleJson.moduleChecksum);
                 }
             } else {
                 throw new Error("Failed to load module.json file. May be malformed.");

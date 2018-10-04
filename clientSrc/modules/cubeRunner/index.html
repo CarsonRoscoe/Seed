@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet">
+        <script type="text/javascript" src="index.js"></script>
+    </head>
+    <body>
+        <center>
+            <h3>Cube Runner</h3>
+            <input type="button" id="btnLeft" value="Move Left" onclick="move(-1, 0)" />
+            <input type="button" id="btnRight" value="Move Right" onclick="move(1, 0)" />
+            <input type="button" id="btnUp" value="Move Up" onclick="move(0, -1)" />
+            <input type="button" id="btnDown" value="Move Down" onclick="move(0, 1)" />
+            <input type="button" id="btnCycle" value="Cycle" onclick="cycle()" />
+            <input type="button" id="btnTeleportShort" value="Jump (5,2)" onclick="teleport(5,2)" />
+            <input type="button" id="btnTeleportMedium" value="Jump (10,5)" onclick="teleport(10,5)" />
+            <input type="button" id="btnTeleportLong" value="Jump (12,13)" onclick="teleport(12,13)" />
+            <canvas id="myCanvas" width="300" height="200" style="border:1px solid #d3d3d3;">
+                    Your browser does not support the HTML5 canvas tag.
+            </canvas>
+        </center>
+    </body>
+</html>
+
+

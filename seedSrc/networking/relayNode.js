@@ -167,7 +167,7 @@ class RelayNode {
                     let onSendTransaction = (transactionJSON) => {
                         let transactionParsed = JSON.parse(transactionJSON);
                         console.info("RELAY NODE: Received sendTransaction | ", transactionParsed.transactionHash);
-                        let transaction = transactionExporter.createExistingTransaction(transactionParsed.sender, transactionParsed.execution, transactionParsed.validatedTransactions, transactionParsed.transactionHash, transactionParsed.signature, transactionParsed.timestamp);
+                        let transaction = transactionExporter.createExistingTransaction(transactionParsed.sender, transactionParsed.execution, transactionParsed.validatedTransactions, transactionParsed.refutedTransactions, transactionParsed.transactionHash, transactionParsed.signature, transactionParsed.timestamp);
                         if (svmExporter.getVirtualMachine().incomingTransaction(transaction)) {
                             console.info("ADDING TO SVM: ", transaction.transactionHash);
                             // Relay transaction to every other connected client
@@ -192,5 +192,15 @@ class RelayNode {
         } else {
             console.info("ERROR: Failed to create a http server");
         }
+    }
+
+    /**
+     * Emits an event to all connected clients about a new transaction, however that transaction
+     * was created by the RelayNode itself
+     * 
+     * @param {*} transaction 
+     */
+    sendTransactionToClients(transactionJSON) {
+        this.socketServer.emit('notifyTransaction', transactionJSON);
     }
 }

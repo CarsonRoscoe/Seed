@@ -271,7 +271,7 @@ class Client {
             socket.on('notifyTransaction', (transactionJSON) => {
                 let transactionParsed = JSON.parse(transactionJSON);
                 console.info("CLIENT: Received notifyTransaction |", transactionParsed.transactionHash);
-                let transaction = transactionExporter.createExistingTransaction(transactionParsed.sender, transactionParsed.execution, transactionParsed.validatedTransactions, transactionParsed.transactionHash, transactionParsed.signature, transactionParsed.timestamp);
+                let transaction = transactionExporter.createExistingTransaction(transactionParsed.sender, transactionParsed.execution, transactionParsed.validatedTransactions, transactionParsed.refutedTransactions, transactionParsed.transactionHash, transactionParsed.signature, transactionParsed.timestamp);
                 console.info("ADDING TO SVM: ", transaction.transactionHash);
                 svmExporter.getVirtualMachine().incomingTransaction(transaction);
                 this.tryRunNextTask();

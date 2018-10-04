@@ -305,7 +305,7 @@ promiseIpc.on("createTransaction", (moduleName, functionName, args, numOfValidat
  * Receives a requests through the HLAPI to add a transaction to the entanglement
  */
 promiseIpc.on("addTransaction", (jsonTransaction) => {
-    let transaction = seed.getTransactionExporter().createExistingTransaction(jsonTransaction.sender, jsonTransaction.execution, jsonTransaction.validatedTransactions, jsonTransaction.transactionHash, jsonTransaction.signature);
+    let transaction = seed.getTransactionExporter().createExistingTransaction(jsonTransaction.sender, jsonTransaction.execution, jsonTransaction.validatedTransactions, jsonTransaction.refutedTransactions, jsonTransaction.transactionHash, jsonTransaction.signature);
     return seed.getSVMExporter().getVirtualMachine().incomingTransaction(transaction);
 });
 
@@ -323,6 +323,7 @@ promiseIpc.on("propagateTransaction", (jsonTransaction) => {
         if (relayNode.relayClients.length > 0) {
             client = relayNode.relayClients[0];
         }
+        relayNode.sendTransactionToClients(jsonTransaction);
     }
     if (client) {
         return client.sendTransaction(jsonTransaction);
