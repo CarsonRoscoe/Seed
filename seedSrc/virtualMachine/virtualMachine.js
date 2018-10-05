@@ -330,7 +330,7 @@ class VirtualMachine {
                 console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::malformed transaction");
             }
         } else {
-            console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::duplicate transaction");
+            // Duplicate transaction. Already been added. Will not add, however not a error scenario. Simply ignore
         }
         return false;
     }
