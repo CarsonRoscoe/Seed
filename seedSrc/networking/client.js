@@ -344,7 +344,7 @@ class Client {
             transaction = this.taskData["transaction"];
         }
         if (this.socketClient) {
-            console.info("CLIENT: Sending sendTransaction");
+            console.info("CLIENT: Sending sendTransaction | ", transaction.transactionHash);
             this.socketClient.emit("sendTransaction", transaction);
         }
     }

@@ -238,6 +238,10 @@ class VirtualMachine {
         };
         
         let blockGenerations = Object.keys(existingBlocks);
+        // Sort the blocks in decending order, so we handle higher-generation blockchains first
+        blockGenerations.sort((a, b) => {
+            return b-a
+        });
         for(let i = 0; i < blockGenerations.length; i++) {
             let blocks = existingBlocks[blockGenerations[i]];
             blocks.sort(sortByTimestamp);

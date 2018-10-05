@@ -17,8 +17,11 @@ const seedHLAPI = require("../../seedHLAPI.js").getSeedHLAPI(promiseIpc);
 /**
  * 
  */
-function move(xOffset, yOffset) {
+function move(xOffset, yOffset, callback) {
     seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : xOffset, yOffset : yOffset }, 4).then((result) => {
+        if (callback) {
+            callback();
+        }
     });
 }
 
@@ -34,31 +37,30 @@ function teleport(xOffset, yOffset) {
  * Begins a cycle of walking right, up, left, down, on repeat
  */
 function cycle() {
-    // Move right
+    /*// Move right
     setTimeout(() => {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 4);
-        }, 10000);
-    }, 2500);
+        }, 1000);
+    }, 250);
     // Move up
     setTimeout(() => {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : -1 }, 4);
-        }, 10000);
-    }, 5000);
+        }, 1000);
+    }, 500);
     // Move left
     setTimeout(() => {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : -1, yOffset : 0 }, 4);
-        }, 10000);
-    }, 7500);
+        }, 1000);
+    }, 750);
     // Move down
     setTimeout(() => {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 4);
-        }, 10000);
-    }, 10000);
-    
+        }, 1000);
+    }, 1000);*/
 }
 
 /**

@@ -210,7 +210,9 @@ ipcMain.on("launchModule", function(event, windowName, htmlFile) {
  * Executes JavaScript on the renderer's behalf on a DApp's window
  */
 ipcMain.on("executeJavaScript", function(event, windowName, javaScriptString, callback) {
-    windows[windowName].webContents.executeJavaScript(javaScriptString, callback);
+    if (windows[windowName] && windows[windowName].webContents) {
+        windows[windowName].webContents.executeJavaScript(javaScriptString, callback);
+    }
 });
 
 /**

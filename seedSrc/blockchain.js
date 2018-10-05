@@ -26,15 +26,28 @@ module.exports = {
             ensureCreated(block.generation);
             blockchain[block.generation].push(block);
     
-            let replacedBlocks = trySquash(block, saveToStorage);
-            
             if (saveToStorage) {
                 let storage = storageExporter.getStorage();
                 if (storage) {
-                    storage.saveBlock(block, replacedBlocks);
+                    storage.saveBlock(block, []);
                 }
             }
-            //debugBlockchain();
+
+            let newBlock = trySquash(block);
+            
+            // If we have a new block, we successfully squashed it and all blocks of the same generation
+            if (newBlock) {
+                console.info("Squashed generation ", block.generation,  " block ", block.blockHash, " into generation ", newBlock.generation, " block ", newBlock.blockHash);
+                if (saveToStorage) {
+                    let storage = storageExporter.getStorage();
+                    if (storage) {
+                        console.info("Deleting blocks: ", blockchain[block.generation]);
+                        storage.saveBlock(newBlock, blockchain[block.generation]);
+                    }
+                }
+                deleteGenerationOfBlocks(block.generation);
+                this.addTestamentBlock(newBlock);
+            }
             return true;
         } else {
             return false;
@@ -179,10 +192,15 @@ module.exports = {
     getAllTransactions : function() {
         let transactions = [];
         let keys = Object.keys(blockchain);
-        keys.sort();
+
+        // Sort the blocks in decending order, so we handle higher-generation blockchains first
+        keys.sort((a, b) => {
+            return b-a
+        });
 
         for(let i = 0; i < keys.length; i++) {
             let chain = blockchain[keys[i]];
+            // Sort the blocks in ascending order, so we handle older block timestamps first
             chain.sort((a, b) => {
                 return a.timestamp - b.timestamp
             });
@@ -246,10 +264,7 @@ module.exports = {
   */
  let trySquash = function(block, saveToStorage) {
     if (squasherExporter.doesTriggerSquashing(block.blockHash)) {
-        let nextGenerationBlock = squasherExporter.blocksToGenerationBlock(blockchain[block.generation]);
-        let replacedBlocks = deleteGenerationOfBlocks(block.generation);
-        module.exports.addTestamentBlock(nextGenerationBlock, saveToStorage);
-        return replacedBlocks;
+        return squasherExporter.blocksToGenerationBlock(blockchain[block.generation]);
     }
     return undefined;
  }
@@ -283,7 +298,10 @@ module.exports = {
  let debugBlockchain = function() {
      console.info("### Debug Blockchain ###")
      let keys = Object.keys(blockchain);
-     keys.sort();
+     // Sort the blocks in decending order, so we handle higher-generation blockchains first
+     keys.sort((a, b) => {
+        return b-a
+    });
 
      for(let i = 0; i < keys.length; i++) {
          let generation = keys[i];
@@ -292,7 +310,6 @@ module.exports = {
             console.info("Generation " + generation);
             for(let j = 0; j < blocks.length; j++) {
                 let block = blocks[j];
-
                 console.info("Block " + block.blockHash, "Transactions Size (bytes): " + block.transactions.length, "ChangeSet Size (bytes): " + block.changeSet.length);
             }
          }
@@ -325,7 +342,7 @@ module.exports = {
     blockchain_blocksCanInvokeSquashingMechanism : function(test, log) {
         let invalidBlock = conformHelper.deepCopy(unitTestingExporter.getTestBlocks()[1]);
         invalidBlock.blockHash = '0' + invalidBlock.blockHash.substr(1);
-        trySquash(invalidBlock, false);
-        test.assertAreEqual(blockchain[1], undefined, "There should be no blocks remaining in generation 1, as they were squashed");
+        let newBlock = trySquash(invalidBlock, false);
+        test.assert(newBlock != undefined, "A squashed block should have been created, proving the passed in block can be squashed");
     }
 }
