@@ -562,7 +562,7 @@ const VALIDATION_LEVEL = {
      * Confirms adding transactions fails if the transaction is invalid
      */
     entanglement_doesNotAddInvalidTransactions : function(test, log) {
-        let testTransaction = unitTestingExporter.getTestTransactions()[0];
+        let testTransaction = unitTestingExporter.getTestTransactions()[1];
         let invalidTransaction = transactionExporter.createExistingTransaction(testTransaction.sender, testTransaction.execution, testTransaction.validatedTransactions, testTransaction.refutedTransactions, testTransaction.transactionHash, testTransaction.signature, testTransaction.timestamp )
         test.assertFail(() => {
             module.exports.tryAddTransaction(invalidTransaction, false);
