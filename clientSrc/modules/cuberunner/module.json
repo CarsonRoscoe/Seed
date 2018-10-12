@@ -1,6 +1,6 @@
 {
     "name" : "CubeRunner",
     "dappSource" : "index.html",
-    "moduleSource" : "cubeRunner.js",
+    "moduleSource" : "cuberunner.js",
     "moduleChecksum" : "4f11"
 }
