@@ -277,7 +277,7 @@ class Client {
                 if (svmExporter.getVirtualMachine().incomingTransaction(transaction)) {
                     let relayNode = relayNodeExporter.getRelayNode();
                     if (relayNode.relayClients.length > 0) {
-                        relayNode.relayClients[0].sendTransaction(transactionJSON);
+                        relayNode.sendTransactionToClients(transactionJSON);
                     }
                 }
                 this.tryRunNextTask();
