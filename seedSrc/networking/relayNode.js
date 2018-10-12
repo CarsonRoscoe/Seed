@@ -180,6 +180,12 @@ class RelayNode {
                             // Relay transaction to every other connected client
                             console.info("RELAY NODE: Sending notifyTransaction: ", transaction.transactionHash);
                             this.socketServer.emit('notifyTransaction', transactionJSON);
+                            // Relay transactions to every connected relay node
+                            for(let i = 0; i < this.relayClients.length; i++) {
+                                if (this.relayClients[i]) {
+                                    this.relayClients[i].sendTransaction(transactionJSON);
+                                }
+                            }
         
                             console.info("RELAY NODE: Sending responseSendTransaction");
                             client.emit('responseSendTransaction');
