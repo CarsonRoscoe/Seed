@@ -142,8 +142,8 @@ app.on('ready', function() {
             ips.push('http://' + commands.ip[i] + ':' + port);
         }
         let relayNode = relayNodeExporter.getRelayNode(ips);
-        relayNode.loadState();
         relayNode.listen(port);
+        relayNode.loadState();
     }
 
     windows["Launcher"] = new BrowserWindow({width: 600, height: 400, title: "Seed Launcher" + titleSuffix});
