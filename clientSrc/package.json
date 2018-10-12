@@ -6,10 +6,13 @@
   "scripts": {
     "start": "Electron .",
     "start:osx": "Electron .",
+    "start:win": "Electron .",
     "start:linux": "./node_modules/electron/dist/electron .",
     "client:osx": "Electron . --client --ip:127.0.0.1",
+    "client:win": "Electron . --client --ip:127.0.0.1",
     "client:linux": "./node_modules/electron/dist/electron . --client --ip:127.0.0.1",
     "relay:osx": "Electron . --relay --storage",
+    "relay:win": "Electron . --relay --storage --ip:127.0.0.1",
     "relay:linux": "./node_modules/electron/dist/electron . --relay --storage",
     "test": "node test.js --v",
     "test:osx": "node test.js --v",
