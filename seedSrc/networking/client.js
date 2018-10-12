@@ -144,6 +144,7 @@ const blockchainExporter = require("../blockchain.js");
 const entanglementExporter = require("../entanglement.js");
 const transactionExporter = require("../transaction.js");
 const svmExporter = require("../virtualMachine/virtualMachine.js");
+const relayNodeExporter = require("./relayNode.js");
 
 let client = undefined;
 
@@ -273,8 +274,14 @@ class Client {
                 console.info("CLIENT: Received notifyTransaction |", transactionParsed.transactionHash);
                 let transaction = transactionExporter.createExistingTransaction(transactionParsed.sender, transactionParsed.execution, transactionParsed.validatedTransactions, transactionParsed.refutedTransactions, transactionParsed.transactionHash, transactionParsed.signature, transactionParsed.timestamp);
                 console.info("ADDING TO SVM: ", transaction.transactionHash);
-                svmExporter.getVirtualMachine().incomingTransaction(transaction);
+                if (svmExporter.getVirtualMachine().incomingTransaction(transaction)) {
+                    let relayNode = relayNodeExporter.getRelayNode();
+                    if (relayNode.relayClients.length > 0) {
+                        relayNode.relayClients[0].sendTransaction(transactionJSON);
+                    }
+                }
                 this.tryRunNextTask();
+                
             });
     
             this.socketClient = socket;
