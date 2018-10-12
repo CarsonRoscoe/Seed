@@ -19,14 +19,15 @@ module.exports = {
      * in the argument on initial setup, or when we want to change connections.
      * 
      * @param {*} otherRelayNodeIPs - (Optional) Other RelayNodes our RelayNode should be connected to
+     * @param {*} loadInitialState - (Optional) Determines whether to have the first client load initial state or not
      */
-    getRelayNode : function(otherRelayNodeIPs) {
+    getRelayNode : function(otherRelayNodeIPs, loadInitialState) {
         if (!relayNode) {
             relayNode = new RelayNode();
         } 
         if (otherRelayNodeIPs) {
             relayNode.disconnectClients();
-            relayNode.connectClients(otherRelayNodeIPs);
+            relayNode.connectClients(otherRelayNodeIPs, loadInitialState);
         }
         return relayNode;
     }
@@ -63,12 +64,18 @@ class RelayNode {
      * Creates and connects a client for each RelayNode IP passed in
      * 
      * @param {*} relayNodeIPs - The IPs, with ports, of each relay node to connect to
+     * @param {*} loadInitialState - (Optional) Determines whether to have the first client load initial state or not
      */
-    connectClients(relayNodeIPs) {
+    connectClients(relayNodeIPs, loadInitialState) {
         for(let i = 0; i < relayNodeIPs.length; i++) {
             // Create a client for communicating with that other relay node
             let client = clientExporter.newClient();
-            client.connect(relayNodeIPs[i]);
+            if (loadInitialState) {
+                clientExporter.connectAndLoadState(client, relayNodeIPs[i])
+                loadInitialState = false;
+            } else {
+                client.connect(relayNodeIPs[i]);
+            }
             this.relayClients.push(client);
         }
     }
