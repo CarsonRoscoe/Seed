@@ -218,34 +218,6 @@ ipcMain.on("executeJavaScript", function(event, windowName, javaScriptString, ca
 /**
  * Runs unit tests. Assumes the state of the Seed cryptocurrency is already prepped for unit tests
  */
-ipcMain.once("runUnitTests", () => {
-    seed.getScenarioTestExporter().seedScenarioSetupTest();
-    let existingTransactions = seed.getEntanglementExporter().getEntanglement().transactions;
-    let sortByTimestamp = function(a, b){
-        return a.timestamp - b.timestamp
-    };
-    
-    let transactions = [];
-    let existingTransactionHashes = Object.keys(existingTransactions);
-    for(let i = 0; i < existingTransactionHashes.length; i++) {
-        transactions.push(existingTransactions[existingTransactionHashes[i]]);
-    }
-    transactions.sort(sortByTimestamp);
-
-    for(let i = 0; i < transactions.length; i++) {
-        seed.getSVMExporter().getVirtualMachine().wasTransactionValid(transactions[i].transactionHash);
-    }
-
-    let changeSet = JSON.parse(transactions[5].execution.changeSet);
-    changeSet.moduleData.totalSupply = 10;
-    transactions[5].execution.changeSet = changeSet;
-    seed.getSVMExporter().getVirtualMachine().wasTransactionValid(transactions[5].transactionHash);
-    
-});
-
-/**
- * Runs unit tests. Assumes the state of the Seed cryptocurrency is already prepped for unit tests
- */
 ipcMain.once("loadFromDisk", () => {
     if (commands.storage) {
         let storage = seed.getStorage();
@@ -265,7 +237,9 @@ function switchAccount(accountEntropy) {
     let account = seed.getAccountExporter().newAccount( { entropy : activeAccountEntropy, network : "00" });
     let keys = Object.keys(windows);
     for(let i = 0; i < keys.length; i++) {
-        windows[keys[i]].webContents.send("accountChanged", account.publicKey);
+        if (windows[keys[i]] && windows[keys[i]].webContents) {
+            windows[keys[i]].webContents.send("accountChanged", account.publicKey);
+        }
     }
 }
 

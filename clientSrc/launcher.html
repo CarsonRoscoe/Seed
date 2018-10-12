@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet">
+        <link href="launcher.css" rel="stylesheet" type="text/css" media="all">
         <script type="text/javascript" src="launcher.js"></script>
     </head>
     <body>
-        <h3 style="text-align: center;">Seed Launcher</h3>
-        <hr />
+        <div id="headerDiv">
+            <h3 style="text-align: center;">Seed Launcher</h3>
+            <hr />
+        </div>
         <div id="moduleButtons">
         </div>
         <input type="button" id="btnLoad" value="Load From Disk" onclick="loadFromDisk()" />
-        <input type="button" id="btnUnitTests" value="Run Unit Tests" onclick="runUnitTests()" />
     </body>
 </html>
 
