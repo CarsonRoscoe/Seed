@@ -1,40 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet">
+        <link href="../../launcher.css" rel="stylesheet" type="text/css" media="all">
         <script type="text/javascript" src="index.js"></script>
     </head>
     <body>
-        <center>
-            <h3>Relay</h3>
-            <input type="button" id="btnRelay" value="Relay" onclick="relay()" />
-            <hr />
-            <h3 style="text-align: center;">History</h3>
-            <table style="height: 131px;" width="414">
-                <tbody>
-                    <tr>
-                        <td style="width: 199px;">&nbsp;</td>
-                        <td style="width: 199px;">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 199px;">&nbsp;</td>
-                        <td style="width: 199px;">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 199px;">&nbsp;</td>
-                        <td style="width: 199px;">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 199px;">&nbsp;</td>
-                        <td style="width: 199px;">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 199px;">&nbsp;</td>
-                        <td style="text-align: center; width: 199px;">&nbsp;</td>
-                    </tr>
-                </tbody>
-            </table>
-        </center>
+        <div id="headerDiv">
+            </div>
+                <div id="bodyDiv">
+                    <h1 style="text-align: center; color: #F1F1F1;">Relay</h1>
+                    
+                    <div style="width: 100%;" id="launcherBodyDiv">
+                        <p>
+                            A relay transaction is a near-empty transaction used to push the validation along in the app.
+                        </p>
+                        <input type="button" class="seedButton" id="btnRelay" value="Relay!" onclick="relay()" />
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
 

@@ -6,12 +6,59 @@
     </head>
     <body>
         <div id="headerDiv">
-            <h3 style="text-align: center;">Seed Launcher</h3>
-            <hr />
         </div>
-        <div id="moduleButtons">
+        <div id="bodyDiv">
+            <div id="moduleButtonsDiv"> 
+                <h3>Loaded DApps</h3>
+            </div>
+            <div id="launcherBodyDiv">
+                <h1 style="text-align: center;">Seed</h1>
+                <p>
+                    The Seed launcher loads downloaded apps reliant on the Seed protocol.
+                </p>
+                <hr />
+                <h3 style="text-align: center;">Transaction & Block Stats</h3>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th colspan="3">Transaction Amount</th>
+                        </tr><tr>
+                            <th>Total</th>
+                            <th>Entanglement</th>
+                            <th>Blocks</th>
+                        </tr><tr>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr><tr>
+                            <th colspan="3">Data Size</th>
+                        </tr><tr>
+                            <th>Raw</th>
+                            <th>&nbsp;</th>
+                            <th>Squashed</th>
+                        </tr><tr>
+                        <td>0</td>
+                        <td>&nbsp;</td>
+                        <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <hr />
+                <h3 style="text-align: center;">Transaction History</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>Sender</th>
+                            <th>Function</th>
+                            <th>Arguments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="txHistory">
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <input type="button" id="btnLoad" value="Load From Disk" onclick="loadFromDisk()" />
     </body>
 </html>
 

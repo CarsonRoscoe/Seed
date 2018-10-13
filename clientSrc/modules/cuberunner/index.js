@@ -100,7 +100,8 @@ function fullRefresh() {
         let javascript = "";
         javascript += "var canvas = document.getElementById(\"myCanvas\");"
         javascript += "var ctx = canvas.getContext(\"2d\");"
-        javascript += "ctx.clearRect(0, 0, canvas.width, canvas.height);"
+        javascript += "ctx.fillStyle=\"white\";";
+        javascript += "ctx.fillRect(0,0,canvas.width,canvas.height);";
 
         for(let i = 0; i < users.length; i++) {
             let user = users[i];

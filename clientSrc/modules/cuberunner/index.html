@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet">
+        <link href="../../launcher.css" rel="stylesheet" type="text/css" media="all">
         <script type="text/javascript" src="index.js"></script>
     </head>
     <body>
-        <center>
-            <h3>Cube Runner</h3>
-            <input type="button" id="btnLeft" value="Move Left" onclick="move(-1, 0)" />
-            <input type="button" id="btnRight" value="Move Right" onclick="move(1, 0)" />
-            <input type="button" id="btnUp" value="Move Up" onclick="move(0, -1)" />
-            <input type="button" id="btnDown" value="Move Down" onclick="move(0, 1)" />
-            <input type="button" id="btnCycle" value="Cycle" onclick="cycle()" />
-            <input type="button" id="btnTeleportShort" value="Jump (5,2)" onclick="teleport(5,2)" />
-            <input type="button" id="btnTeleportMedium" value="Jump (10,5)" onclick="teleport(10,5)" />
-            <input type="button" id="btnTeleportLong" value="Jump (12,13)" onclick="teleport(12,13)" />
-            <canvas id="myCanvas" width="300" height="200" style="border:1px solid #d3d3d3;">
-                    Your browser does not support the HTML5 canvas tag.
-            </canvas>
-        </center>
+        <div id="headerDiv">
+        </div>
+        <div id="bodyDiv">
+            <h1 style="text-align: center;">Cube Runner</h1>
+            <center>
+                <input type="button" style="width: 20%;" class="seedButton" id="btnLeft" value="Move Left" onclick="move(-1, 0)" />
+                <input type="button" style="width: 20%;" class="seedButton" id="btnRight" value="Move Right" onclick="move(1, 0)" />
+                <input type="button" style="width: 20%;" class="seedButton" id="btnUp" value="Move Up" onclick="move(0, -1)" />
+                <input type="button" style="width: 20%;" class="seedButton" id="btnDown" value="Move Down" onclick="move(0, 1)" />
+                <hr/>
+                <input type="button" class="seedButton" style="width: 27%;" id="btnTeleportShort" value="Jump (5,2)" onclick="teleport(5,2)" />
+                <input type="button" class="seedButton" style="width: 27%;" id="btnTeleportMedium" value="Jump (10,5)" onclick="teleport(10,5)" />
+                <input type="button" class="seedButton" style="width: 27%;" id="btnTeleportLong" value="Jump (12,13)" onclick="teleport(12,13)" />
+                <hr/>
+                <input type="button" class="seedButton" style="width: 83%;" id="btnCycle" value="Cycle" onclick="cycle()" />
+                <hr/>
+                <canvas id="myCanvas" width="800" height="360" style="border:1px solid #d3d3d3;">
+                        Your browser does not support the HTML5 canvas tag.
+                </canvas>
+            </center>
+        </div>
     </body>
 </html>
 

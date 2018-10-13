@@ -69,6 +69,7 @@ let menuTemplate = [
     {
         label : "Edit",
         submenu: [
+            { label : "Load From Disk", click() { loadFromDisk() } },
             { role : "undo" },
             { role : "redo" },
             { role : "separator" },
@@ -145,7 +146,7 @@ app.on('ready', function() {
         relayNode.listen(port);
     }
 
-    windows["Launcher"] = new BrowserWindow({width: 600, height: 400, title: "Seed Launcher" + titleSuffix});
+    windows["Launcher"] = new BrowserWindow({width: 960, height: 720, title: "Seed Launcher" + titleSuffix});
     windows["Launcher"].loadURL(url.format({
         pathname: path.join(__dirname, 'launcher.html'),
         protocol: 'file:',
@@ -155,7 +156,7 @@ app.on('ready', function() {
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
 
-    let javascript = "let moduleButtonsDiv = document.getElementById(\"moduleButtons\");\n";
+    let javascript = "let moduleButtonsDiv = document.getElementById(\"moduleButtonsDiv\");\n";
     let loadedModules = moduleLoader.loadModules();
     let keys = Object.keys(loadedModules);
     for(let i = 0; i < keys.length; i++) {
@@ -163,6 +164,7 @@ app.on('ready', function() {
         let moduleButtonName = "moduleButton" + loadedModule.name;
         javascript += "let " + moduleButtonName + " = document.createElement(\"input\");\n";
         javascript += moduleButtonName + ".type = \"button\";\n";
+        javascript += moduleButtonName + ".classList.add(\"seedButton\");\n";
         javascript += moduleButtonName + ".value = \"" + loadedModule.name + "\";\n";
         javascript += moduleButtonName + ".onclick = function() { launch(\"" + loadedModule.name + "\", \"" + loadedModule.dappSource + "\"); };\n";
         javascript += "moduleButtonsDiv.appendChild(" + moduleButtonName + ");\n";
@@ -194,6 +196,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
+ * Function which wraps loading from disk if storage is enabled
+ */
+let loadFromDisk = function() {
+    if (commands.storage) {
+        let storage = seed.getStorage();
+        let initialState = storage.readInitialState();
+        storage.loadInitialState(initialState.blocks, initialState.transactions);
+    }
+}
+
+/**
  * When a Renderer requests a module be launched, the Renderer passes the name and htmlFile over,
  * and then the Main process launches the new window
  */
@@ -201,7 +214,7 @@ ipcMain.on("launchModule", function(event, windowName, htmlFile) {
     if (commands.storage) {
         seed.newStorage(seed.newFileSystemInjector(__dirname), false);
     }
-    windows[windowName] = new BrowserWindow({width: 600, height: 400, title: windowName + titleSuffix});
+    windows[windowName] = new BrowserWindow({width: 960, height: 720, title: windowName + titleSuffix});
     windows[windowName].loadURL(url.format({
         pathname: path.join(__dirname, htmlFile),
         protocol: 'file:',
@@ -215,17 +228,6 @@ ipcMain.on("launchModule", function(event, windowName, htmlFile) {
 ipcMain.on("executeJavaScript", function(event, windowName, javaScriptString, callback) {
     if (windows[windowName] && windows[windowName].webContents) {
         windows[windowName].webContents.executeJavaScript(javaScriptString, callback);
-    }
-});
-
-/**
- * Runs unit tests. Assumes the state of the Seed cryptocurrency is already prepped for unit tests
- */
-ipcMain.once("loadFromDisk", () => {
-    if (commands.storage) {
-        let storage = seed.getStorage();
-        let initialState = storage.readInitialState();
-        storage.loadInitialState(initialState.blocks, initialState.transactions);
     }
 });
 

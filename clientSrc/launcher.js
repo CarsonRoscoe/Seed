@@ -19,9 +19,3 @@ const ipc = require('electron').ipcRenderer;
 function launch(moduleName, htmlFile) {
     ipc.send('launchModule', moduleName, "modules/" + moduleName.toLowerCase() + "/" + htmlFile);
 }
-/**
- * Notifies the main process through IPC to load data from the disk
- */
-function loadFromDisk() {
-    ipc.send("loadFromDisk");
-}
