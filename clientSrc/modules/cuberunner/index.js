@@ -37,7 +37,7 @@ function teleport(xOffset, yOffset) {
  * Begins a cycle of walking right, up, left, down, on repeat
  */
 function cycle() {
-    /*// Move right
+    // Move right
     setTimeout(() => {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 4);
@@ -60,7 +60,7 @@ function cycle() {
         setInterval(() => {
             seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 4);
         }, 1000);
-    }, 1000);*/
+    }, 1000);
 }
 
 /**
