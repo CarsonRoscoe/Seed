@@ -19,6 +19,7 @@ module.exports = {
      * @param {*} block - The block to add to the blockchains
      */
     addTestamentBlock: function(block, saveToStorage) {
+        console.info("Adding block to blockchain ", block.blockHash);
         if (blockExporter.isValid(block)) {
             if (saveToStorage == undefined) {
                 saveToStorage = true;
@@ -27,6 +28,10 @@ module.exports = {
             blockchain[block.generation].push(block);
     
             let replacedBlocks = trySquash(block, saveToStorage);
+
+            if (replacedBlocks) {
+                console.info("Squashing, replacing blocks ", replacedBlocks.length);
+            }
             
             if (saveToStorage) {
                 let storage = storageExporter.getStorage();

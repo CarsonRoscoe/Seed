@@ -51,7 +51,7 @@ module.exports = {
             if (statTrackerExporter.isTracking()) {
                 statTrackerExporter.squashTransactions(0, JSON.stringify(blocksToSquash).length, JSON.stringify(block).length);
             }
-            cosnole.info("SQUASHED GENERATION BLOCK");
+            console.info("SQUASHED GENERATION BLOCK");
             return block;
         }
     },

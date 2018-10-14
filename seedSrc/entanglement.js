@@ -46,10 +46,7 @@ module.exports = {
      * @param transaction - The transaction to add
      */
     tryAddTransaction : function(transaction) {
-        let num = 1;
-        console.info(num++ + "a");
         if (!entanglement.contains(transaction.transactionHash)) {
-            console.info(num++ + "a");
             let children = [];
             for(let i = 0; i < transaction.validatedTransactions.length; i++) {
                 let child = transaction.validatedTransactions[i].transactionHash;
@@ -63,23 +60,18 @@ module.exports = {
                     }
                 }
             }
-            console.info(num++ + "a");
             entanglement.addTransaction(transaction);
-            console.info(num++ + "a");
             for(let i = 0; i < children.length; i++) {
                 console.info("EDGE from ", transaction.transactionHash, " to ", children[i]);
                 entanglement.addEdge(transaction.transactionHash, children[i]);
             }
-            console.info(num++ + "a");
             let storage = storageExporter.getStorage();
             if (storage) {
                 storage.saveTransaction(transaction);
             }
-            console.info(num++ + "a");
             if (statTrackerExporter.isTracking()) {
                 statTrackerExporter.addTransactionToEntanglement(JSON.stringify(transaction).length);
             }
-            console.info(num++ + "ab");
             return true;
         }
         return false;
@@ -329,16 +321,12 @@ let tryTrust = function(transactionHash, entanglement) {
             }, toTransaction.execution.changeSet);
         delete entanglement.tips[transactionHash];
         if (squasherExporter.doesTriggerSquashing(transactionHash)) {
-            console.info("IsTRIGGERING SQUASHING");
-            console.info(1);
+            console.info("IsTRIGGERING SQUASHING - b4");
             let validatedParents = getAllValidatedParents(toTransaction, entanglement);
-            console.info(2);
+            console.info("isTRIGGERING SQUASHING - after | ", validatedParents);
             let block = squasherExporter.transactionsToBlock(validatedParents);
-            console.info(3);
             blockchainExporter.addTestamentBlock(block);
-            console.info(4);
             removeAllTransactionsFromEntanglement(validatedParents, block.blockHash, entanglement);
-            console.info(5);
         }
     } else {
         //console.info("ENTANGLEMENT failed to TRUST ", transactionHash, entanglement.vertices[transactionHash].trust);
@@ -359,24 +347,33 @@ let tryTrust = function(transactionHash, entanglement) {
  * @param {*} transaction - The transaction who's parents we are finding
  * @param {*} entanglement - The entanglement to find transactions from
  */
-let getAllValidatedParents = function(transaction, entanglement) {
+let getAllValidatedParents = function(transaction, entanglement, hitTracker) {
+    if (!hitTracker) {
+        hitTracker = {};
+    }
     let validated = [];
-    if (transaction.validatedTransactions.length > 0) {
-        for(let i = 0; i < transaction.validatedTransactions.length; i++) {
-            let validatedTransaction = entanglement.getTransaction(transaction.validatedTransactions[i].transactionHash);
-            if (validatedTransaction) {
-                if (typeof validatedTransaction == "string") {
-                    // Its a block hash, we've hit the end. No parents to add
-                } else {
-                    let validatedParents = getAllValidatedParents(validatedTransaction, entanglement);
-                    validated = validatedParents;
+    if (!hitTracker[transaction.transactionHash]) {
+        console.info("START: ", transaction.transactionHash);
+        hitTracker[transaction.transactionHash] = true;
+        if (transaction.validatedTransactions.length > 0) {
+            for(let i = 0; i < transaction.validatedTransactions.length; i++) {
+                let validatedTransaction = entanglement.getTransaction(transaction.validatedTransactions[i].transactionHash);
+                if (validatedTransaction) {
+                    if (typeof validatedTransaction == "string") {
+                        // Its a block hash, we've hit the end. No parents to add
+                    } else {
+                        console.info(transaction.transactionHash, "->", validatedTransaction.transactionHash);
+                        let validatedParents = getAllValidatedParents(validatedTransaction, entanglement, hitTracker);
+                        validated = validatedParents;
+                    }
                 }
             }
+        } else {
+            // Genesis transaction case. No parents to add
         }
-    } else {
-        // Genesis transaction case. No parents to add
+        console.info("END: ", transaction.transactionHash);
+        validated.push(transaction);
     }
-    validated.push(transaction);
     return validated;
 }
 
@@ -502,26 +499,19 @@ const VALIDATION_LEVEL = {
      * @param {*} toName - The node the edge ends at
      */
     addEdge(fromName, toName) {
-        console.info(10);
         if (!fromName || !toName || fromName === toName) {
             return;
         }
-        console.info(20);
         let from = this.addNode(fromName)
         let to = this.addNode(toName);
-        console.info(30);
         if (to.incoming.hasOwnProperty(fromName)) {
             return;
         }
-        console.info(40);
         this.checkForCycle(fromName, toName);
-        console.info(50);
         from.hasOutgoing = true;
         to.incoming[fromName] = from;
         to.incomingNodes.push(fromName);
-        console.info(60);
         tryTrust(toName, this);
-        console.info(70);
     }
 
     /**

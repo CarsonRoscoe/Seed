@@ -214,9 +214,7 @@ class VirtualMachine {
             let work = this.doWork(account, tips);
             let transaction = transactionExporter.createNewTransaction(account.publicKey, { moduleName : mod, functionName : func, args : args, changeSet : JSON.stringify(localSimulation) }, work);
             transaction.signature = account.sign(transaction.transactionHash);
-            console.info("7");
             this.incomingTransaction(transaction);
-            console.info("8");
             return transaction;
         } else {
             return null;
@@ -309,15 +307,11 @@ class VirtualMachine {
     incomingTransaction(transaction) {
         console.info("SVM: incomingTransaction", transaction);
         if (!entanglement.hasTransaction(transaction.transactionHash)) {
-            console.info(1);
             // Check, if there's any refuting transactions, that they do not exist.
             if (transaction.refutedTransactions && transaction.refutedTransactions.length > 0) {
-                console.info(2, "a");
                 for(let i = 0; i < transaction.refutedTransactions.length; i++) {
-                    console.info(3);
                     let refutedTxHash = transaction.refutedTransactions[i];
                     if (entanglement.hasTransaction(transaction.refutedTransactions[i])) {
-                        console.info(4);
                         // Simulate it and make sure it is valid
                         let wasRefutedInvalid = !this.wasTransactionValid(refutedTxHash); 
                         if (wasRefutedInvalid) {
@@ -328,14 +322,11 @@ class VirtualMachine {
                     }
                 }
             }
-            console.info(2);
 
             // If its a proper, formed transaction
             if (transactionExporter.isTransactionProper(transaction).passed) {
-                console.info(3);
                 // We add it to the entanglement
                 entanglement.tryAddTransaction(transaction);
-                console.info(4);
                 return true;
             } else {
                 console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::malformed transaction");
