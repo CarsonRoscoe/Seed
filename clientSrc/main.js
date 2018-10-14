@@ -226,6 +226,9 @@ ipcMain.on("launchModule", function(event, windowName, htmlFile) {
         protocol: 'file:',
         slashes: true
     }));
+    windows[windowName].on("close", () => {
+        windows[windowName] = undefined;
+    });
 });
 
 /**

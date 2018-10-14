@@ -15,7 +15,7 @@ const promiseIpc = new PromiseIpc({ maxTimeoutMs: 2000 });
 const seedHLAPI = require("../../seedHLAPI.js").getSeedHLAPI(promiseIpc);
 
 /**
- * 
+ * Propagates a tarnsaction which moves the player around
  */
 function move(xOffset, yOffset, callback) {
     seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : xOffset, yOffset : yOffset }, 4).then((result) => {
@@ -26,41 +26,52 @@ function move(xOffset, yOffset, callback) {
 }
 
 /**
- * 
+ * Teleports the player a certain about of positions off
  */
 function teleport(xOffset, yOffset) {
     seedHLAPI.createAndPropagateTransaction("CubeRunner", "teleport", { x : xOffset, y : yOffset }, 4).then((result) => {
     });
 }
 
+// Intervals to clear
+let intervals = [];
+
 /**
  * Begins a cycle of walking right, up, left, down, on repeat
  */
 function cycle() {
-    // Move right
-    setTimeout(() => {
-        setInterval(() => {
-            seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 4);
+    if (intervals.length == 0) {
+        // Move right
+        setTimeout(() => {
+            intervals.push(setInterval(() => {
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 4);
+            }, 1000));
+        }, 250);
+        // Move up
+        setTimeout(() => {
+            invervals.push(setInterval(() => {
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : -1 }, 4);
+            }, 1000));
+        }, 500);
+        // Move left
+        setTimeout(() => {
+            intervals.push(setInterval(() => {
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : -1, yOffset : 0 }, 4);
+            }, 1000));
+        }, 750);
+        // Move down
+        setTimeout(() => {
+            intervals.push(setInterval(() => {
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 4);
+            }, 1000));
         }, 1000);
-    }, 250);
-    // Move up
-    setTimeout(() => {
-        setInterval(() => {
-            seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : -1 }, 4);
-        }, 1000);
-    }, 500);
-    // Move left
-    setTimeout(() => {
-        setInterval(() => {
-            seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : -1, yOffset : 0 }, 4);
-        }, 1000);
-    }, 750);
-    // Move down
-    setTimeout(() => {
-        setInterval(() => {
-            seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 4);
-        }, 1000);
-    }, 1000);
+        
+    } else {
+        for(let i = 0; i < intervals.length; i++) {
+            clearInterval(intervals[i]);
+        }
+        intervals = [];
+    }
 }
 
 /**
