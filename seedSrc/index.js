@@ -26,6 +26,7 @@ const testingExporter = require("./tests/testing.js");
 const clientExporter = require("./networking/client.js");
 const relayNodeExporter = require("./networking/relayNode.js");
 const cryptoExporter = require("./helpers/cryptoHelper.js");
+const statTrackerExporter = require("./statTracker.js");
 
 module.exports = {
     /**
@@ -121,6 +122,12 @@ module.exports = {
      */
     getCryptographyExporter : function() {
         return cryptoExporter;
+    },
+    /**
+     * @return - The Stat Tracker exporter
+     */
+    getStatTrackerExporter : function() {
+        return statTrackerExporter;
     },
     /**
      * Subscribes for callback to be invoked whenever the given module has the given function validated

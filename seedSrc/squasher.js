@@ -12,6 +12,7 @@
  */
 
 const blockExporter = require("./block.js");
+const statTrackerExporter = require("./statTracker.js");
 
 module.exports = {
     /**
@@ -27,7 +28,9 @@ module.exports = {
         let timestamp = transactionsToSquash[transactionsToSquash.length - 1].timestamp;
 
         let block = blockExporter.newBlock(generation, JSON.stringify(mapping), JSON.stringify(changeSet), timestamp);
-
+        if (statTrackerExporter.isTracking()) {
+            statTrackerExporter.squashTransactions(transactionsToSquash.length, JSON.stringify(transactionsToSquash).length, JSON.stringify(block).length);
+        }
         return block;
     },
     /**
@@ -36,6 +39,7 @@ module.exports = {
      * @param {*} blocksToSquash - Array of blocks to squash
      */
     blocksToGenerationBlock(blocksToSquash) {
+        console.info("SQUASHING GENERATION BLOCKS!", blocksToSquash.length);
         sortTimestamped(blocksToSquash);
         if (confirmGenerationsMatch(blocksToSquash)) {
             let generation = blocksToSquash[0].generation + 1;
@@ -44,7 +48,10 @@ module.exports = {
             let timestamp = blocksToSquash[blocksToSquash.length - 1].timestamp;
 
             let block = blockExporter.newBlock(generation, JSON.stringify(mapping), JSON.stringify(changeSet), timestamp);
-
+            if (statTrackerExporter.isTracking()) {
+                statTrackerExporter.squashTransactions(0, JSON.stringify(blocksToSquash).length, JSON.stringify(block).length);
+            }
+            cosnole.info("SQUASHED GENERATION BLOCK");
             return block;
         }
     },

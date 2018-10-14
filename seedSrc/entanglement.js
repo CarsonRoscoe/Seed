@@ -46,7 +46,10 @@ module.exports = {
      * @param transaction - The transaction to add
      */
     tryAddTransaction : function(transaction) {
+        let num = 1;
+        console.info(num++ + "a");
         if (!entanglement.contains(transaction.transactionHash)) {
+            console.info(num++ + "a");
             let children = [];
             for(let i = 0; i < transaction.validatedTransactions.length; i++) {
                 let child = transaction.validatedTransactions[i].transactionHash;
@@ -60,15 +63,23 @@ module.exports = {
                     }
                 }
             }
+            console.info(num++ + "a");
             entanglement.addTransaction(transaction);
+            console.info(num++ + "a");
             for(let i = 0; i < children.length; i++) {
+                console.info("EDGE from ", transaction.transactionHash, " to ", children[i]);
                 entanglement.addEdge(transaction.transactionHash, children[i]);
             }
+            console.info(num++ + "a");
             let storage = storageExporter.getStorage();
             if (storage) {
                 storage.saveTransaction(transaction);
             }
-
+            console.info(num++ + "a");
+            if (statTrackerExporter.isTracking()) {
+                statTrackerExporter.addTransactionToEntanglement(JSON.stringify(transaction).length);
+            }
+            console.info(num++ + "ab");
             return true;
         }
         return false;
@@ -264,6 +275,7 @@ module.exports = {
  const blockchainExporter = require("./blockchain.js");
  const storageExporter = require("./storage/storage.js");
  const unitTestingExporter = require("./tests/unitTesting.js");
+ const statTrackerExporter = require("./statTracker.js");
 
  /**
   *  Helper function used recursively by the Entanglement with regards to visiting nodes when traversing the DAG
@@ -315,12 +327,18 @@ let tryTrust = function(transactionHash, entanglement) {
                 args : toTransaction.execution.args,
                 txHashes : toTransaction.txHashes
             }, toTransaction.execution.changeSet);
-            delete entanglement.tips[transactionHash];
+        delete entanglement.tips[transactionHash];
         if (squasherExporter.doesTriggerSquashing(transactionHash)) {
+            console.info("IsTRIGGERING SQUASHING");
+            console.info(1);
             let validatedParents = getAllValidatedParents(toTransaction, entanglement);
+            console.info(2);
             let block = squasherExporter.transactionsToBlock(validatedParents);
+            console.info(3);
             blockchainExporter.addTestamentBlock(block);
+            console.info(4);
             removeAllTransactionsFromEntanglement(validatedParents, block.blockHash, entanglement);
+            console.info(5);
         }
     } else {
         //console.info("ENTANGLEMENT failed to TRUST ", transactionHash, entanglement.vertices[transactionHash].trust);
@@ -484,19 +502,26 @@ const VALIDATION_LEVEL = {
      * @param {*} toName - The node the edge ends at
      */
     addEdge(fromName, toName) {
+        console.info(10);
         if (!fromName || !toName || fromName === toName) {
             return;
         }
+        console.info(20);
         let from = this.addNode(fromName)
         let to = this.addNode(toName);
+        console.info(30);
         if (to.incoming.hasOwnProperty(fromName)) {
             return;
         }
+        console.info(40);
         this.checkForCycle(fromName, toName);
+        console.info(50);
         from.hasOutgoing = true;
         to.incoming[fromName] = from;
         to.incomingNodes.push(fromName);
+        console.info(60);
         tryTrust(toName, this);
+        console.info(70);
     }
 
     /**

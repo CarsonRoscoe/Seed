@@ -19,3 +19,27 @@ const ipc = require('electron').ipcRenderer;
 function launch(moduleName, htmlFile) {
     ipc.send('launchModule', moduleName, "modules/" + moduleName.toLowerCase() + "/" + htmlFile);
 }
+
+/**
+ * Gets notified by the main process when the Seed stats get changed
+ */
+ipc.on("reloadSeedStats", (event, stats) => {
+    let javascript = "";
+    javascript += getChangeInnerHTMLJavaScript("totalTransactionCount", stats.totalTransactionCount);
+    javascript += getChangeInnerHTMLJavaScript("entanglementTransactionCount", stats.entanglementTransactionCount);
+    javascript += getChangeInnerHTMLJavaScript("blockchainTransactionCount", stats.blockchainTransactionCount);
+    javascript += getChangeInnerHTMLJavaScript("rawStorage", stats.rawStorage);
+    javascript += getChangeInnerHTMLJavaScript("squashedStorage", stats.squashedStorage);
+    console.info(javascript);
+    ipc.send("executeJavaScript", "Launcher", javascript);
+});
+
+/**
+ * Creates the JavaScript which modifies the innerHTML variable of any given element.
+ * 
+ * @param {*} elementID - Which element to change the "innerHTML" of
+ * @param {*} value  - What to change the "innerHTML" value to
+ */
+function getChangeInnerHTMLJavaScript(elementID, value) {
+    return "document.getElementById(\"" + elementID + "\").innerHTML = " + value + ";";
+}
