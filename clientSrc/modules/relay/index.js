@@ -21,6 +21,6 @@ function relay() {
     seedHLAPI.switchAccount(entropy)
         .then(() => {
             console.info("Relay2");
-            seedHLAPI.createAndPropagateTransaction("Relay", "relay", {}, 4);
+            seedHLAPI.createAndPropagateTransaction("Relay", "relay", {}, 2);
         });
 }

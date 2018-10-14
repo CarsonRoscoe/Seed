@@ -135,7 +135,9 @@ module.exports = {
                 transaction = entanglement.getTransaction(JSON.stringify(tips[i]));
             }
             if (transaction && sender != transaction.sender && entanglement.tips[transaction.transactionHash] > 0) {
-                result.push(transaction);
+                if (new Date().getTime() - transaction.timestamp > 200) {
+                    result.push(transaction);
+                }
             }
         }
         return result;
@@ -320,7 +322,6 @@ let tryTrust = function(transactionHash, entanglement) {
             }, toTransaction.execution.changeSet);
         delete entanglement.tips[transactionHash];
         if (squasherExporter.doesTriggerSquashing(transactionHash)) {
-            console.info("IsTRIGGERING SQUASHING - b4");
             let validatedParentsMapping = {};
             getAllValidatedParents(toTransaction, entanglement, validatedParentsMapping);
             let validatedParents = [];
@@ -328,7 +329,6 @@ let tryTrust = function(transactionHash, entanglement) {
             for(let i = 0; i < keys.length; i++) {
                 validatedParents.push(validatedParentsMapping[keys[i]]);
             }
-            console.info("isTRIGGERING SQUASHING - after | ", keys);
             let block = squasherExporter.transactionsToBlock(validatedParents);
             blockchainExporter.addTestamentBlock(block);
             removeAllTransactionsFromEntanglement(validatedParents, block.blockHash, entanglement);
