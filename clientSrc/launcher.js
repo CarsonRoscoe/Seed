@@ -30,7 +30,6 @@ ipc.on("reloadSeedStats", (event, stats) => {
     javascript += getChangeInnerHTMLJavaScript("blockchainTransactionCount", stats.blockchainTransactionCount);
     javascript += getChangeInnerHTMLJavaScript("rawStorage", stats.rawStorage);
     javascript += getChangeInnerHTMLJavaScript("squashedStorage", stats.squashedStorage);
-    console.info(javascript);
     ipc.send("executeJavaScript", "Launcher", javascript);
 });
 

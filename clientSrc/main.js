@@ -277,7 +277,6 @@ promiseIpc.on("getTransaction", (transactionHash) => {
  * JSON object and the amount of transactions they with their transaction to validate.
  */
 promiseIpc.on("createTransaction", (moduleName, functionName, args, numOfValidations) => {
-    console.info("IPC: createTransaction", moduleName, functionName, args, numOfValidations);
     let account = seed.getAccountExporter().newAccount( { entropy : activeAccountEntropy, network : "00" });
     return seed.getSVMExporter().getVirtualMachine().createTransaction(account, moduleName, functionName, args, numOfValidations);
 });
@@ -453,6 +452,5 @@ promiseIpc.on("getHistory", (moduleName) => {
 switchAccount("ABC");
 
 setInterval(() => {
-    console.info("Refetch Stats");
     windows["Launcher"].webContents.send("reloadSeedStats", seed.getStatTrackerExporter().getStats());
 }, 1000);

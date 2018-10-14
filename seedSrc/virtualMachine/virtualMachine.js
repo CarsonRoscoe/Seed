@@ -207,7 +207,6 @@ class VirtualMachine {
      * @return - A newly created transaction, or null if transaction creation failed
      */
     createTransaction(account, mod, func, args, transactionsToValidate) {
-        console.info("SVM: createTransaction", account, mod, func, args, transactionsToValidate);
         let tips = entanglement.getTipsToValidate(account.publicKey, transactionsToValidate);
         let localSimulation = this.simulate({ module : mod, function : func, args : args, user : account.publicKey, txHashes : tips });
         if (localSimulation.didChange()) {
@@ -305,7 +304,6 @@ class VirtualMachine {
      * @param {*} transaction - The transaction to attempt to receive
      */
     incomingTransaction(transaction) {
-        console.info("SVM: incomingTransaction", transaction.transactionHash);
         if (!entanglement.hasTransaction(transaction.transactionHash)) {
             // Check, if there's any refuting transactions, that they do not exist.
             if (transaction.refutedTransactions && transaction.refutedTransactions.length > 0) {
@@ -332,11 +330,8 @@ class VirtualMachine {
                 console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::malformed transaction");
             }
         } else {
-            console.info("Duplicate");
             // Duplicate transaction. Already been added. Will not add, however not a error scenario. Simply ignore
         }
-
-        console.info("false");
         return false;
     }
 
