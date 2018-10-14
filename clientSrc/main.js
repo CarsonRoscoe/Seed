@@ -154,6 +154,9 @@ app.on('ready', function() {
         protocol: 'file:',
         slashes: true
     }));
+    windows["Launcher"].on("close", () => {
+        app.quit();
+    });
 
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
@@ -460,6 +463,10 @@ promiseIpc.on("getHistory", (moduleName) => {
 // Switch to the first user for testing
 switchAccount("ABC");
 
-setInterval(() => {
-    windows["Launcher"].webContents.send("reloadSeedStats", seed.getStatTrackerExporter().getStats());
+let refreshLaucherInterval = setInterval(() => {
+    if (windows["Launcher"]) {
+        windows["Launcher"].webContents.send("reloadSeedStats", seed.getStatTrackerExporter().getStats());
+    } else {
+        clearInterval(refreshLaucherInterval);
+    }
 }, 1000);
