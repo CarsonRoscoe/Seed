@@ -305,7 +305,7 @@ class VirtualMachine {
      * @param {*} transaction - The transaction to attempt to receive
      */
     incomingTransaction(transaction) {
-        console.info("SVM: incomingTransaction", transaction);
+        console.info("SVM: incomingTransaction", transaction.transactionHash);
         if (!entanglement.hasTransaction(transaction.transactionHash)) {
             // Check, if there's any refuting transactions, that they do not exist.
             if (transaction.refutedTransactions && transaction.refutedTransactions.length > 0) {

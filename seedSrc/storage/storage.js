@@ -183,12 +183,14 @@ class Storage {
      */
     saveBlock(newBlock, replacedBlocks) {
         if (enabled) {
-            this.databaseInjector.writeBlockSync(newBlock.blockHash, this.tryCompress(newBlock), newBlock.generation);
-            if (newBlock.generation == 1) {
-                let transactions = JSON.parse(newBlock.transactions);
-                let transactionHashes = Object.keys(transactions);
-                for(let i = 0; i < transactionHashes.length; i++) {
-                    this.databaseInjector.removeTransactionAsync(transactionHashes[i]);
+            if (newBlock) {
+                this.databaseInjector.writeBlockSync(newBlock.blockHash, this.tryCompress(newBlock), newBlock.generation);
+                if (newBlock.generation == 1) {
+                    let transactions = JSON.parse(newBlock.transactions);
+                    let transactionHashes = Object.keys(transactions);
+                    for(let i = 0; i < transactionHashes.length; i++) {
+                        this.databaseInjector.removeTransactionAsync(transactionHashes[i]);
+                    }
                 }
             }
             if (replacedBlocks) {

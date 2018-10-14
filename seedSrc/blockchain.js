@@ -26,20 +26,27 @@ module.exports = {
             }
             ensureCreated(block.generation);
             blockchain[block.generation].push(block);
-    
-            let replacedBlocks = trySquash(block, saveToStorage);
 
-            if (replacedBlocks) {
-                console.info("Squashing, replacing blocks ", replacedBlocks.length);
-            }
-            
             if (saveToStorage) {
                 let storage = storageExporter.getStorage();
                 if (storage) {
-                    storage.saveBlock(block, replacedBlocks);
+                    storage.saveBlock(block);
                 }
             }
-            //debugBlockchain();
+    
+            let newBlock = trySquash(block.blockHash, blockchain[block.generation]);
+
+            if (newBlock) {
+                console.info("Squashed ", block.blockHash, " and ", (blockchain[block.generation].length - 1), " blocks into ", newBlock.blockHash);
+                let replacedBlocks = deleteGenerationOfBlocks(block.generation);
+                if (saveToStorage) {
+                    let storage = storageExporter.getStorage();
+                    if (storage) {
+                        storage.saveBlock(undefined, replacedBlocks);
+                    }
+                }
+                return this.addTestamentBlock(newBlock, saveToStorage);
+            }
             return true;
         } else {
             return false;
@@ -246,15 +253,13 @@ module.exports = {
 
  /**
   * Helper method which tries to squash a blockchain
-
-  * @param {*} trasnaction - The block checking for squashing on
+  * 
+  * @param {*} blockHash - The hash of the block which may be triggering squashing
+  * @param {*} blocksToSquash - Array of blocks to be squashed if the blockHash triggers squashing
   */
- let trySquash = function(block, saveToStorage) {
-    if (squasherExporter.doesTriggerSquashing(block.blockHash)) {
-        let nextGenerationBlock = squasherExporter.blocksToGenerationBlock(blockchain[block.generation]);
-        let replacedBlocks = deleteGenerationOfBlocks(block.generation);
-        module.exports.addTestamentBlock(nextGenerationBlock, saveToStorage);
-        return replacedBlocks;
+ let trySquash = function(blockHash, blocksToSquash) {
+    if (squasherExporter.doesTriggerSquashing(blockHash)) {
+        return squasherExporter.blocksToGenerationBlock(blocksToSquash);
     }
     return undefined;
  }
