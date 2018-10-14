@@ -1,6 +1,9 @@
 {
     "name" : "Relay",
+    "title" : "Relay DApp",
     "dappSource" : "index.html",
     "moduleSource" : "relay.js",
-    "moduleChecksum" : "ec72"
+    "moduleChecksum" : "ec72",
+    "width" : 300,
+    "height" : 300
 }

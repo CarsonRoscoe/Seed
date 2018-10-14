@@ -53,7 +53,7 @@ let commands = {
  * The suffix of the windows title. 
  * Will add nothing, (Client) or (RelayNode) to the titles if we're running it in any special mdoe.
  */
-let titleSuffix = (commands.client) ? " (Client)" : ( commands.relay ? "( Relay Node)" : "" );
+let titleSuffix = (commands.client) ? " (Client)" : ( commands.relay ? " (Relay Node)" : "" );
 
 //'production': Release for public
 //'development': Development tools enabled
@@ -117,6 +117,8 @@ let menuTemplate = [
     }
 ];
 
+let moduleData = {};
+
 /**
  * Invoked when Electron finishes loading the Main process
  * 
@@ -162,6 +164,7 @@ app.on('ready', function() {
     for(let i = 0; i < keys.length; i++) {
         let loadedModule = loadedModules[keys[i]];
         let moduleButtonName = "moduleButton" + loadedModule.name;
+        moduleData[loadedModule.name] = loadedModule;
         javascript += "let " + moduleButtonName + " = document.createElement(\"input\");\n";
         javascript += moduleButtonName + ".type = \"button\";\n";
         javascript += moduleButtonName + ".classList.add(\"seedButton\");\n";
@@ -214,7 +217,10 @@ ipcMain.on("launchModule", function(event, windowName, htmlFile) {
     if (commands.storage) {
         seed.newStorage(seed.newFileSystemInjector(__dirname), false);
     }
-    windows[windowName] = new BrowserWindow({width: 960, height: 720, title: windowName + titleSuffix});
+    let width = moduleData[windowName].width ? moduleData[windowName].width : 960;
+    let height = moduleData[windowName].height ? moduleData[windowName].height : 720;
+    let title = moduleData[windowName].title ? moduleData[windowName].title : windowName;
+    windows[windowName] = new BrowserWindow({width: width, height: height, title: title + titleSuffix});
     windows[windowName].loadURL(url.format({
         pathname: path.join(__dirname, htmlFile),
         protocol: 'file:',

@@ -1,6 +1,9 @@
 {
     "name" : "CubeRunner",
+    "title" : "Cube Runner DApp",
     "dappSource" : "index.html",
     "moduleSource" : "cuberunner.js",
-    "moduleChecksum" : "4f11"
+    "moduleChecksum" : "4f11",
+    "width" : 960,
+    "height" : 720
 }

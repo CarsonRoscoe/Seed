@@ -1,6 +1,9 @@
 {
     "name" : "Seed",
+    "title" : "Seed Wallet",
     "dappSource" : "index.html",
     "moduleSource" : "seed.js",
-    "moduleChecksum" : "fd37"
+    "moduleChecksum" : "fd37",
+    "width" : 960,
+    "height" : 720
 }
