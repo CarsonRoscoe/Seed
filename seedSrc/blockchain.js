@@ -335,7 +335,7 @@ module.exports = {
     blockchain_blocksCanInvokeSquashingMechanism : function(test, log) {
         let invalidBlock = conformHelper.deepCopy(unitTestingExporter.getTestBlocks()[1]);
         invalidBlock.blockHash = '0' + invalidBlock.blockHash.substr(1);
-        trySquash(invalidBlock, false);
-        test.assertAreEqual(blockchain[1], undefined, "There should be no blocks remaining in generation 1, as they were squashed");
+        let block = trySquash(invalidBlock.blockHash, [invalidBlock]);
+        test.assert(block != undefined, "The block should have successfully been creating by squashing the old one");
     }
 }
