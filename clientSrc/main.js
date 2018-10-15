@@ -91,7 +91,12 @@ let menuTemplate = [
                     { label : "Account #2", click() { switchAccount("DEF"); } },
                     { label : "Account #3", click() { switchAccount("GHI"); } },
                     { label : "Account #4", click() { switchAccount("JKL"); } },
-                    { label : "Account #5", click() { switchAccount("MNO"); } }
+                    { label : "Account #5", click() { switchAccount("MNO"); } },
+                    { label : "Account #6", click() { switchAccount("PQR"); } },
+                    { label : "Account #7", click() { switchAccount("STU"); } },
+                    { label : "Account #8", click() { switchAccount("VWX"); } },
+                    { label : "Account #9", click() { switchAccount("YZ1"); } },
+                    { label : "Account #10", click() { switchAccount("234"); } }
                 ]
             },
             {
@@ -99,13 +104,8 @@ let menuTemplate = [
                 click() {
                     relayTransaction();
                 }
-            },
-            { 
-                label: "About (version 0.0.1)",
-                click() {
-                    //Open About Window
-                }
-            }, {
+            }, 
+            {
                 type: "separator"
             }, {
                 label: "Exit",
@@ -118,7 +118,6 @@ let menuTemplate = [
 ];
 
 let moduleData = {};
-
 /**
  * Invoked when Electron finishes loading the Main process
  * 
@@ -160,6 +159,8 @@ app.on('ready', function() {
 
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
+    
+    app.setName("Seed");
 
     let javascript = "let moduleButtonsDiv = document.getElementById(\"moduleButtonsDiv\");\n";
     let loadedModules = moduleLoader.loadModules();

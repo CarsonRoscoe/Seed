@@ -98,6 +98,7 @@ const blockExporter = require("../block.js");
 const unitTestingExporter = require("../tests/unitTesting.js");
 const fileSystemInjector = require("./fileSystemInjector.js");
 const localStorageInjector = require("./localStorageInjector.js");
+const statTrackerExporter = require("../statTracker.js");
 
 enabled = true;
 
@@ -116,6 +117,9 @@ let loadInitialState = function(blocks, transactions) {
         blocks.sort(sortByTimestamp);
         for(let i = 0; i < blocks.length; i++) {
             if (blockExporter.isValid(blocks[i])) {
+                if (statTrackerExporter.isTracking()) {
+                    statTrackerExporter.loadBlock(Object.keys(JSON.parse(blocks[i].transactions)).length, JSON.stringify(blocks[i]).length)
+                }
                 blockchainExporter.addTestamentBlock(blocks[i], false);
                 ledgerExporter.getLedger().applyBlock(blocks[i]);
             } else {

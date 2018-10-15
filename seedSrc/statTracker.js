@@ -15,6 +15,12 @@ module.exports = {
         stats.squashedStorage -= sizeBeforeSquashing;
         stats.squashedStorage += sizeAfterSquashing;
     },
+    loadBlock : function(transactionCount, blockSize) {
+        stats.blockchainTransactionCount += transactionCount;
+        stats.totalTransactionCount += transactionCount;
+        stats.squashedStorage += blockSize;
+        stats.rawStorage += blockSize;
+    },
     isTracking : function() {
         return true;
     },

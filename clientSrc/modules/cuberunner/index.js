@@ -44,28 +44,27 @@ function cycle() {
         // Move right
         setTimeout(() => {
             intervals.push(setInterval(() => {
-                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 4);
-            }, 1000));
-        }, 250);
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 1, yOffset : 0 }, 3);
+            }, 2000));
+        }, 500);
         // Move up
         setTimeout(() => {
-            invervals.push(setInterval(() => {
-                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : -1 }, 4);
-            }, 1000));
-        }, 500);
+            intervals.push(setInterval(() => {
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : -1 }, 3);
+            }, 2000));
+        }, 1000);
         // Move left
         setTimeout(() => {
             intervals.push(setInterval(() => {
-                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : -1, yOffset : 0 }, 4);
-            }, 1000));
-        }, 750);
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : -1, yOffset : 0 }, 3);
+            }, 2000));
+        }, 1500);
         // Move down
         setTimeout(() => {
             intervals.push(setInterval(() => {
-                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 4);
-            }, 1000));
-        }, 1000);
-        
+                seedHLAPI.createAndPropagateTransaction("CubeRunner", "move", { xOffset : 0, yOffset : 1 }, 3);
+            }, 2000));
+        }, 2000);
     } else {
         for(let i = 0; i < intervals.length; i++) {
             clearInterval(intervals[i]);
