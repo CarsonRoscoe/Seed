@@ -321,13 +321,21 @@ class VirtualMachine {
                 }
             }
             // If its a proper, formed transaction
-            if (transactionExporter.isTransactionProper(transaction).passed) {
-                // We add it to the entanglement
-                entanglement.tryAddTransaction(transaction);
-                return true;
-            } else {
-                console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::malformed transaction");
+            try {
+                if (transactionExporter.isTransactionProper(transaction).passed) {
+                    // We add it to the entanglement
+                    entanglement.tryAddTransaction(transaction);
+                } else {
+                    console.info("SVM::incomingTx::Rejected ", transaction.transactionHash, "::malformed transaction");
+                    return false;
+                }
+            } catch (e) {
+                let incomingTransaction = this.incomingTransaction;
+                setTimeout(() => {
+                    console.info("TRYING AGAIN!!!!!", incomingTransaction(transaction));
+                }, 200);
             }
+            return true;
         } else {
             // Duplicate transaction. Already been added. Will not add, however not a error scenario. Simply ignore
         }
