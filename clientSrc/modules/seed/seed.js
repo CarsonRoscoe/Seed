@@ -167,7 +167,7 @@ let transferFrom = function(container, changeContext) {
          changeContext.subtract(value, { user : from, outerKey : "allowance", innerKey : sender });
          changeContext.add(value, { user : to, key : "balance" });
     }
-    
+
     return changeContext;
 }
 

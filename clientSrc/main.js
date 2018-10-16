@@ -130,6 +130,8 @@ app.on('ready', function() {
         seed.newStorage(seed.newFileSystemInjector(__dirname, "data"), false);
     }
 
+    seed.getEntanglementExporter().setTipAgeRequirement(200);
+
     if (commands.client) {
         let client = seed.getClientExporter().getClient();
         setTimeout(() => {
@@ -159,8 +161,6 @@ app.on('ready', function() {
 
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
-    
-    app.setName("Seed");
 
     let javascript = "let moduleButtonsDiv = document.getElementById(\"moduleButtonsDiv\");\n";
     let loadedModules = moduleLoader.loadModules();

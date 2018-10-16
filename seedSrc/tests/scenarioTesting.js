@@ -82,9 +82,11 @@ module.exports = {
                     return changeContext;
                 },
                 getX : function(container) {
+                    console.info(container.getSenderData());
                     return container.getSenderData().x;
                 },
                 getY : function(container) {
+                    console.info(container.getSenderData());
                     return container.getSenderData().y;
                 },
                 hasWall : function(container) {

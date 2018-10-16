@@ -89,7 +89,6 @@ let relay = function(container, changeContext) {
     // Gather readonly data
     let sender = container.sender;
     let relaysToAdd = container.txHashes.length;
-
     // Confirm adequate balance for the transaction
     if (relaysToAdd > 0) {
          changeContext.add(relaysToAdd, {user : sender, key : "relays"});

@@ -135,7 +135,7 @@ module.exports = {
                 transaction = entanglement.getTransaction(JSON.stringify(tips[i]));
             }
             if (transaction && sender != transaction.sender && entanglement.tips[transaction.transactionHash] > 0) {
-                if (new Date().getTime() - transaction.timestamp > 200) {
+                if (new Date().getTime() - transaction.timestamp >= tipAgeRequirement) {
                     result.push(transaction);
                 }
             }
@@ -259,6 +259,15 @@ module.exports = {
             result.sort(sortByTimestamp);
         }
         return result;
+    },
+    /**
+     * Sets how old a transaction must be beforeit can be used as a tip.
+     * This is done to prevent using brand-brand new transactions as validation points
+     * to allow for all users to receive propagation.
+     * Defaults to 0ms delay.
+     */
+    setTipAgeRequirement : function(milliseconds) {
+        tipAgeRequirement = milliseconds;
     }
  }
 
@@ -269,6 +278,8 @@ module.exports = {
  const storageExporter = require("./storage/storage.js");
  const unitTestingExporter = require("./tests/unitTesting.js");
  const statTrackerExporter = require("./statTracker.js");
+
+ let tipAgeRequirement = 0; 
 
  /**
   *  Helper function used recursively by the Entanglement with regards to visiting nodes when traversing the DAG

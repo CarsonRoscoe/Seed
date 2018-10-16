@@ -320,7 +320,6 @@ class VirtualMachine {
                     }
                 }
             }
-
             // If its a proper, formed transaction
             if (transactionExporter.isTransactionProper(transaction).passed) {
                 // We add it to the entanglement
