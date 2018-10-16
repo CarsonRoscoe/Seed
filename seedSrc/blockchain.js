@@ -68,7 +68,7 @@ module.exports = {
      */
     getTransaction : function(transactionHash, generations) {
         if (!generations) {
-            generations = [1, 2, 3];
+            generations = [1, 2, 3, 4];
         }
         for(let i = 0; i < generations.length; i++) {
             let generation = generations[i];
