@@ -126,7 +126,7 @@ npm run client:osx
 - [x] Create High Level API For Electron DApps
 - [x] Design UI For Seed Module
 - [x] Create Simple UI For Seed Module
-- [ ] Style UI For Seed Module
+- [x] Style UI For Seed Module
 - [x] Design Client Networking & Routing Portion
 - [x] Implement Networking
 
